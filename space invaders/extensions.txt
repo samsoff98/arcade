@@ -1,0 +1,42 @@
+Sam Soff sps239
+
+Extensions:
+1) Manual pause:
+  When the player presses p in the middle of the game it will pause the game in the
+  middle of the round. I also included text at the top of the screen so the player knows
+  that p will pause the game. When the game is paused it displays the
+  controls of the game: Up to shoot, left and right to move, m to mute. This pause
+  causes the game to enter an additional state (STATE_USER_PAUSED), so that when the
+  game is unpaused, the ship stays where it was before the game was paused. If
+  the other pause was used (the one that occurs when the ship is hit with a bolt)
+  a new ship would be made and placed in the middle of the window instead, so this
+  gets around that issue.
+
+2)Lives:
+  The game displays the number of lives the player has with hearts at the top left of
+  the screen. When a life is lost one of the hearts disappears. This was practical because
+  otherwise the player has no way of knowing how many lives they have. I created a new
+  class life to do this, and I uploaded a pixelated heart image from google images.
+
+3) Sounds:
+  The game will play a number of sounds when bolts are fired from the ship or from
+  aliens, and when a collision occurs with a bolt and the ship or aliens. Additionally,
+  when the m key is pressed it mutes the game, and I included a sound image that appears
+  and disappears to indicate if the game is muted or not. The image is in the top
+  left corner of the game and I got the image from google images.
+
+4) Difficulty settings:
+  I made 4 difficulty settings: easy, medium, hard, and very hard. These vary in the
+  number of rows and columns of aliens as well as the speed of the aliens. This
+  required rows, columns, and speed to be passed as parameters when Wave is called.
+
+5) Additional alien:
+  I also included an additional alien image that I found on google that I liked, but
+  it doesn't change the gameplay in any meaningful way.
+
+6) Bomb:
+The player get one bomb a game to shoot by pressing the b key. This kills all of the aliens adjacent to the alien hit by the bomb. There is a bomb icon at the top left of the screen next to the sound icon indicating whether the player still has a bomb left to shoot. I created a bomb class in order to accomplish this, which had similar attributes to the bolt class, except it was a GImage instead of a GRectangle. I also created additional 
+methods in the wave file for shooting and moving the bomb as well as bomb collisions and 
+explosions. The image used for the bomb was downloaded from google images. 
+
+
