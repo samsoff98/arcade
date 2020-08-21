@@ -23,7 +23,7 @@ LINE_COLOR = introcs.RGB(0,0,0)
 #Snake Speed
 SNAKE_SPEED = 5 #dont change from 5 or 10. change fps in __main__.py to change speed
 #Snake_size
-SNAKE_SIZE = 150
+SNAKE_SIZE = 8
 
 #States
 STATE_INACTIVE = 0
