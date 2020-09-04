@@ -83,16 +83,16 @@ class BattleGame(GameApp):
         """
         self.text = GLabel(text="Press s for start",
          font_size = 40, left = GAME_WIDTH//5,
-        bottom = GAME_HEIGHT//3, bold = True, font_name = 'Arcade.ttf')
+        bottom = GAME_HEIGHT//3, bold = True, font_name = 'RetroGame.ttf')
 
         self.text1 = GLabel(text="Use the arrow keys to move the ship."
         "\n Press up to shoot the aliens. "
         "\n You lose when you run out of lives or the aliens get to the bottom.", font_size = 20,
-        x = GAME_WIDTH/2,bottom = 100, bold = True, font_name = 'Arcade.ttf')
+        x = GAME_WIDTH/2,bottom = 100, bold = True, font_name = 'RetroGame.ttf')
 
         self.text2 = GLabel(text="Welcome to Battlefield!!",
          font_size = 50, x = GAME_WIDTH/2, top = 600,
-          bold = True, font_name = 'Arcade.ttf')
+          bold = True, font_name = 'RetroGame.ttf')
         self.state = STATE_INACTIVE
         self.level = level
         self.wave = None
@@ -275,7 +275,7 @@ class BattleGame(GameApp):
         when the ship is hit with an alien bolt.
         """
         self.text = None
-        if self.wave.getCollided() == True and self._wave.getLives() > 0:
+        if self.wave.getLoser() == True and self.wave.getLives() > 0:
             self.state = STATE_PAUSED
 
     def paused_to_continue(self):
@@ -284,12 +284,12 @@ class BattleGame(GameApp):
         to change the state from STATE_PAUSED
         to STATE_CONTINUE.
         """
-        self.text = GLabel(text="Life Lost. Press P to continue.", font_size = 30,
+        self.text = GLabel(text="Life LostX. Press P to continue.", font_size = 30,
             left = GAME_WIDTH/5, bottom = GAME_HEIGHT/3, bold = True,
-            font_name = 'Arcade.ttf')
+            font_name = 'RetroGame.ttf')
 
         current = self.input.is_key_down("p") or self.input.is_key_down("down")
-        change = current > 0 and self._LK == 0
+        change = current > 0 and self.LK == 0
         if change == True:
             self.state = STATE_CONTINUE
         self.LK = current
@@ -310,12 +310,12 @@ class BattleGame(GameApp):
         This is a manual pause, not one caused by the ship being hit with a bolt.
         """
         current = self.input.is_key_down("p")
-        change = current > 0 and self._LK == 0
+        change = current > 0 and self.LK == 0
 
         if change == True:
             self.text = GLabel(text="Game Paused. Press P to continue.",
             font_size = 30, left = GAME_WIDTH/5, bottom = GAME_HEIGHT/3,
-            bold = True, font_name = 'Arcade.ttf')
+            bold = True, font_name = 'RetroGame.ttf')
             self.state = STATE_USER_PAUSED
         self.LK = current
 
@@ -331,9 +331,9 @@ class BattleGame(GameApp):
             "Left and right to move.\n m to mute/unmute. b to shoot bomb."
             ,font_size = 30,
             left = GAME_WIDTH/6, bottom = GAME_HEIGHT/7, bold = True,
-            font_name = 'Arcade.ttf')
+            font_name = 'RetroGame.ttf')
         current = self.input.is_key_down("p") or self.input.is_key_down("spacebar")
-        change = current > 0 and self._LK == 0
+        change = current > 0 and self.LK == 0
         if change == True:
             self.text = None
             self.wave.setCollided(False)
@@ -363,13 +363,13 @@ class BattleGame(GameApp):
         """
         if self.wave.getGameOver() == 'win':
             self.text = GLabel(text = "YOU WIN! Press s to play again",
-            font_size= 40,font_name= 'Arcade.ttf', x= GAME_WIDTH/2,
+            font_size= 40,font_name= 'RetroGame.ttf', x= GAME_WIDTH/2,
             y= GAME_HEIGHT/2)
             self.restart()
         if self.wave is not None and (self.wave.getGameOver() == 'lose'
             or self.wave.getLives() == 0):
             self.text = GLabel(text = "GAME OVER. Press s to restart",
-            font_size= 30,font_name= 'Arcade.ttf',x= GAME_WIDTH/2,
+            font_size= 30,font_name= 'RetroGame.ttf',x= GAME_WIDTH/2,
             y= GAME_HEIGHT/2)
             self.restart()
 

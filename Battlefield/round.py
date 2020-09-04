@@ -36,7 +36,12 @@ class Round(object):
         return self.lives
 
 
-
+    def getLoser(self):
+        """
+        Returns the loser boolean, of whether or not the ball has reached the bottom
+        of the screen (when a life is lost)
+        """
+        return self.loser
 
 
 
@@ -65,18 +70,30 @@ class Round(object):
         self.aliens2 = a2
         self.aliens3 = a3
         self.aliens4 = a4
-        #self.arena = self.arena()
+        self.aWidth = self.columns *SIDE_LENGTH
+        self.aLength = self.rows * SIDE_LENGTH
+        self.aMidX = GAME_WIDTH//2
+        self.aMidY = GAME_HEIGHT//2
+        self.aLeft = self.aMidX - self.aWidth/2
+        self.aRight = self.aMidX + self.aWidth/2
+        self.aTop = self.aMidY + self.aLength/2
+        self.aBottom = self.aMidY - self.aLength/2
+        self.arena = self.arena()
         self.dline = GPath(points=[DEFENSE_LINE,0,DEFENSE_LINE, GAME_HEIGHT],
                       linewidth=2, linecolor=introcs.RGB(0,0,0))
         self.lives = 3
         self.time = 0
+        self.loser = False
 
         self.gameover = 'no'
         self.pauseline = GLabel(text = "press p to pause",font_size= 20,
-        font_name= 'Arcade.ttf', x= GAME_WIDTH/2, y= GAME_HEIGHT-10)
+        font_name= 'RetroGame.ttf', x= GAME_WIDTH/2, y= GAME_HEIGHT-10)
 
         self.press = 0
         self.draw_lives = self.draw_lives()
+
+
+
 
 
 
@@ -122,37 +139,57 @@ class Round(object):
         """
         defines the area of the arena and fills in with rectanges.
         """
-        ARENA_WIDTH = self.columns *SIDE_LENGTH
-        ARENA_LENGTH = self.rows * SIDE_LENGTH
-        midX = GAME_WIDTH//2
-        left = midX - ARENA_WIDTH/2
-        right = midX + ARENA_WIDTH/2
-        width = ARENA_WIDTH
 
-        midY = GAME_HEIGHT//2
-        top = midY + ARENA_LENGTH/2
-        bottom = midY - ARENA_LENGTH/2
-        height = ARENA_LENGTH
+        width = self.aWidth
+        height = self.aLength
 
         pos = 0
 
         alist = []
+        left = self.aLeft
+        bottom = self.aBottom
         a = left
         b = bottom
 
-        for a in range(self.rows):
+        for a in range(self.columns):
             list = []
-            for b in range(self.columns):
+            for b in range(self.rows):
                 if (a+b)%2 == 0:
                     color = introcs.RGB(0,0,0)
                 else:
                     color = introcs.RGB(155,155,155)
-                r = Rectangle(left + a*SIDE_LENGTH,bottom + b*SIDE_LENGTH, color, color, a, b)
+                r = Rectangle(left + a*SIDE_LENGTH,bottom + b*SIDE_LENGTH, a, b, color)
 
                 list.append(r)
             alist.append(list)
 
         return alist
+
+    def alien_move(self):
+        for alien in self.alienlist:
+            alien.move()
+
+    def alien_shoot(self):
+
+            alien.shoot()
+
+    def shoot(self):
+        for tower in self.towerlist:
+            pos = tower.position
+            range = tower.range
+            row = pos.row
+            column = pos.column
+            for alien in self.alienlist:
+                apos = alien.position
+                arange = alien.range
+                arow = apos.row
+                acolumn = apos.column
+                if row == arow and column+range >= acolumn:
+                    tower.shoot()
+                if row == arow and column > acolumn - arange:
+                    alien.shoot()
+
+
 
     def check_gameover(self):
         """

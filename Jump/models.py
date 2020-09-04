@@ -34,39 +34,63 @@ from game2d import *
 class Rectangle(GRectangle):
 
 
-    def __init__(self,x,y,w= RECTANGLE_WIDTH, h=RECTANGLE_HEIGHT, color = RECTANGLE_COLOR):
+    def __init__(self,x,y, move = False, w= RECTANGLE_WIDTH, h=RECTANGLE_HEIGHT, color = RECTANGLE_COLOR):
 
         super().__init__(x=x, y=y, width = w,
         height =h, fillcolor=color)
+        self._hit = False
+        self._direction = "right"
+        self._move = move
+
+    def moving(self):
+
+        p = self.getPaddleX()
+        if self._direction == "right":
+            self.setPaddleX(p+RECTANGLE_X_MOVEMENT)
+        else:
+            self.setPaddleX(p-RECTANGLE_X_MOVEMENT)
+        if self.left < 0:
+            self.left = 0
+            self._direction = "right"
+        if self.right>GAME_WIDTH:
+            self.right = GAME_WIDTH
+            self._direction = "left"
 
 
 
-    def getPaddlePosition(self):
+    def getPaddleX(self):
         """
         returns the x position of the paddle
         """
         return self.x
 
-    def setPaddlePosition(self,s):
+    def setPaddleX(self,s):
         """
         Sets the x position of the paddle
         """
         self.x = s
 
 
+    def getPaddleY(self):
+        """
+        returns the x position of the paddle
+        """
+        return self.y
 
-    def collide (self,ball):
-        for a in range (ball.circle_edge):
-            if self.contains(a):
-                return True
-        return False
+    def setPaddleY(self,s):
+        """
+        Sets the x position of the paddle
+        """
+        self.y = s
+
 
 
 class Ball(GImage):
 
-    def __init__(self,x,y=PADDLE_BOTTOM+PADDLE_HEIGHT+CIRCLE_DIAMETER/2):
-        super().__init__(x = GAME_WIDTH/2, y = SHIP_BOTTOM,
-        width = SHIP_WIDTH, height = SHIP_HEIGHT, source = 'ship.png')
+    def __init__(self):
+        super().__init__(x = GAME_WIDTH/2, y = BALL_START_Y,
+        width = BALL_WIDTH, height = BALL_HEIGHT, source = 'jumper.png')
+
 
 
 
@@ -91,35 +115,10 @@ class Ball(GImage):
         self.y = s
 
 
-    def contains(self,x,y):
-        r = CIRCLE_DIAMETER/2.0
-        dx = (x-self.x)*(x-self.x)/(r*r)
-        dy = (y-self.y)*(y-self.y)/(r*r)
-        return (dx*dy)<=1
-
-    def circumference(self):
-
-        list = []
-        h = int(self.x)
-        k = int(self.y)
-        r = int(CIRCLE_DIAMETER/2)
-        c = int(CIRCLE_DIAMETER)
-        for x in range (h-c, h+c):
-            for y in range (k-c, k+c):
-                if ((x-h)*(x-h)) + ((y-k)*(y-k)) == r*r:
-                    list.append((x,y))
-        return list
-
-        """
-        for a in range(100):
-            x = r*math.cos(a)+h
-            y = r*math.sin(a)+k
-            list.append((x,y))
-        """
 
 
 
-    def move_ship(self,distance):
+    def move_ball_x(self,distance):
         """
         This method moves the ship if the player signals to do so. It is called
         by the update_ship method in wave to move the ship when the left and
@@ -133,6 +132,21 @@ class Ball(GImage):
         if self.right>GAME_WIDTH:
             self.right = GAME_WIDTH
 
+
+    def move_ball_y(self,distance):
+        """
+        This method moves the ship if the player signals to do so. It is called
+        by the update_ship method in wave to move the ship when the left and
+        right arrows are pressed. It also makes sure the ship doesnt move off the
+        screen.
+        """
+        p = self.getBallY()
+        self.setBallY(p+distance)
+
+
+    def jump(self, pf):
+        self.jumping = True
+        self.peak = pf
 
 
     def bounceX(self):

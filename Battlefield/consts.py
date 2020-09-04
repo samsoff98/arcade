@@ -15,11 +15,11 @@ import sys
 ### WINDOW CONSTANTS (all coordinates are in pixels) ###
 
 #: the width of the game display
-GAME_WIDTH  = 800
+GAME_WIDTH  = 900
 #: the height of the game display
 GAME_HEIGHT = 800
 
-SIDE_LENGTH = 40
+SIDE_LENGTH = 70
 COLUMNS = 9
 ROWS = 5
 
