@@ -34,16 +34,20 @@ from game2d import *
 class Rectangle(GRectangle):
 
 
-    def __init__(self,x,y, move = False, w= RECTANGLE_WIDTH, h=RECTANGLE_HEIGHT, color = RECTANGLE_COLOR):
+    def __init__(self,x,y, move = False, sjump = False, w= RECTANGLE_WIDTH, h=RECTANGLE_HEIGHT, color = RECTANGLE_COLOR):
 
         super().__init__(x=x, y=y, width = w,
         height =h, fillcolor=color)
-        self._hit = False
         self._direction = "right"
         self._move = move
+        self._passed = False
+        self._superjump = sjump
+
 
     def moving(self):
-
+        """
+        moves the paddle left or right based on the attribute _direction.
+        """
         p = self.getPaddleX()
         if self._direction == "right":
             self.setPaddleX(p+RECTANGLE_X_MOVEMENT)
@@ -85,73 +89,76 @@ class Rectangle(GRectangle):
 
 
 
-class Ball(GImage):
-
+class Jumper(GImage):
+    """
+    The class for the jumper.
+    """
     def __init__(self):
-        super().__init__(x = GAME_WIDTH/2, y = BALL_START_Y,
-        width = BALL_WIDTH, height = BALL_HEIGHT, source = 'jumper.png')
+        """
+        Initializes the jumper object.
+        """
+        super().__init__(x = GAME_WIDTH/2, y = JUMPER_START_Y,
+        width = JUMPER_WIDTH, height = JUMPER_HEIGHT, source = 'jumper.png')
 
 
 
 
 
     def getXDirection(self):
+        """
+        returns the xdirection attribute.
+        """
         if self.movex > 0:
             self.xdirection = "right"
         else:
             self.xdirection = "left"
         return self.xdirection
 
-    def getBallX(self):
+    def getJumperX(self):
+        """
+        returns the x value of the jumper
+        """
         return self.x
 
-    def setBallX(self,s):
+    def setJumperX(self,s):
+        """
+        sets the x value of the jumper
+        """
         self.x = s
 
-    def getBallY(self):
+    def getJumperY(self):
+        """
+        returns the y value of the jumper
+        """
         return self.y
 
-    def setBallY(self,s):
+    def setJumperY(self,s):
+        """
+        sets the y value of the jumper
+        """
         self.y = s
 
 
 
 
 
-    def move_ball_x(self,distance):
+    def move_jumper_x(self,distance):
         """
-        This method moves the ship if the player signals to do so. It is called
-        by the update_ship method in wave to move the ship when the left and
-        right arrows are pressed. It also makes sure the ship doesnt move off the
-        screen.
+        This method moves the alien in the x direction based on the parameter "distance".
+        It also prevents the jumper from moving off the screen by being to far to the
+        right or left.
         """
-        p = self.getBallX()
-        self.setBallX(p+distance)
+        p = self.getJumperX()
+        self.setJumperX(p+distance)
         if self.left < 0:
             self.left = 0
         if self.right>GAME_WIDTH:
             self.right = GAME_WIDTH
 
 
-    def move_ball_y(self,distance):
+    def move_jumper_y(self,distance):
         """
-        This method moves the ship if the player signals to do so. It is called
-        by the update_ship method in wave to move the ship when the left and
-        right arrows are pressed. It also makes sure the ship doesnt move off the
-        screen.
+        This method moves the alien in the y direction based on the parameter "distance".
         """
-        p = self.getBallY()
-        self.setBallY(p+distance)
-
-
-    def jump(self, pf):
-        self.jumping = True
-        self.peak = pf
-
-
-    def bounceX(self):
-        self.movex = -self.movex
-
-
-    def bounceY(self):
-        self.movey = -self.movey
+        p = self.getJumperY()
+        self.setJumperY(p+distance)

@@ -92,7 +92,7 @@ class Invaders(GameApp):
         (in attribute _text) saying that the user should press to play a game.
         """
         self._text = GLabel(text="Press e for easy. \n Press m for medium."
-        "\n Press h for hard. \n Press v for very hard.",
+        "\n Press h for hard. \n Press v for very hard. \n Press x for endless mode." ,
          font_size = 40, left = GAME_WIDTH//5,
         bottom = GAME_HEIGHT//3, bold = True, font_name = 'Arcade.ttf')
 
@@ -108,6 +108,7 @@ class Invaders(GameApp):
         self._wave = None
         self._quitline = GLabel(text="Press Q to quit",font_size = 15,
         left = 0, y = 10, bold = True)
+
 
 
     def update(self,dt):
@@ -208,6 +209,8 @@ class Invaders(GameApp):
             self._wave.draw(self.view)
         if state == STATE_COMPLETE:
             self._text.draw(self.view)
+            if self._endless:
+                self._text1.draw(self.view)
         if state == STATE_USER_PAUSED:
             self._wave.draw(self.view)
             self._text.draw(self.view)
@@ -235,7 +238,7 @@ class Invaders(GameApp):
 
     def getSetting(self):
         """
-        returns the game setting. e for easy, m for medium, h for hard, v for very hard
+        returns the game setting. e for easy, m for medium, h for hard, v for very hard, x for endless.
         """
 
         return self._setting
@@ -261,6 +264,7 @@ class Invaders(GameApp):
         medium = self.input.is_key_down("m")
         hard = self.input.is_key_down("h")
         vhard = self.input.is_key_down("v")
+        endless = self.input.is_key_down("x")
 
 
         if easy == True:
@@ -270,6 +274,7 @@ class Invaders(GameApp):
             self._row = 4
             self._column = 11
             self._speed = 1.0
+            self._endless = False
 
         elif medium == True:
             self._text = None
@@ -278,6 +283,7 @@ class Invaders(GameApp):
             self._row = 5
             self._column = 12
             self._speed = 0.8
+            self._endless = False
 
         elif hard == True:
             self._text = None
@@ -286,6 +292,7 @@ class Invaders(GameApp):
             self._row = 7
             self._column = 13
             self._speed = 0.6
+            self._endless = False
 
         elif vhard == True:
             self._text = None
@@ -294,13 +301,36 @@ class Invaders(GameApp):
             self._row = 8
             self._column = 14
             self._speed = 0.4
+            self._endless = False
+
+        elif endless == True:
+            self._text = None
+            self._state = STATE_NEWWAVE
+            self._setting = 'x'
+            self._row = 3
+            self._column = 12
+            self._speed = 0.3
+            self._endless = True
+
+
+
+    def highscore(self):
+        setting = self._setting
+        phrase = setting + "-SIhighscore.txt"
+        file = open(phrase, "r")
+        score = file.readline()
+        self._file = file
+        file.close()
+        return score
+
 
     def newwave_to_active(self):
         """
         Changes the state from STATE_NEWWAVE to STATE_ACTIVE and constructs
         the wave of aliens.
         """
-        self._wave = Wave(self._row,self._column,self._speed)
+        self._highscore = self.highscore()
+        self._wave = Wave(self._row,self._column,self._speed, self._endless, self._highscore)
         self._state = STATE_ACTIVE
 
     def active_to_paused(self):
@@ -396,15 +426,39 @@ class Invaders(GameApp):
         If the s key is pressed a new game starts.
         """
         if self._wave.getGameOver() == 'win':
-            self._text = GLabel(text = "YOU WIN! Press s to play again",
-            font_size= 40,font_name= 'Arcade.ttf', x= GAME_WIDTH/2,
-            y= GAME_HEIGHT/2)
+            time = self._wave.getTime()
+            time = round(time,1)
+            self._text = GLabel(text = "YOU WIN! You beat the level in " + str(time) + " seconds."
+            "\n Press s to play again",
+            font_size= 30,font_name= 'Arcade.ttf', x= GAME_WIDTH/2,y= GAME_HEIGHT/2)
+            if self._endless == False and time < int(float(self._highscore)):
+                setting = self._setting
+                phrase = setting + "-SIhighscore.txt"
+                file = open(phrase, "w")
+                self._highscore = time
+                file.write(str(self._highscore) + "\n")
+                file.close()
             self.restart()
         if self._wave is not None and (self._wave.getGameOver() == 'lose'
             or self._wave.getLives() == 0):
-            self._text = GLabel(text = "GAME OVER. Press s to restart",
-            font_size= 30,font_name= 'Arcade.ttf',x= GAME_WIDTH/2,
-            y= GAME_HEIGHT/2)
+            if self._endless:
+                score = self._wave.getScore()
+                if score > int(self._highscore):
+                    file = open("x-SIhighscore.txt", "w")
+                    self._highscore = score
+                    file.write(str(self._highscore) + "\n")
+                    file.close()
+                self._text = GLabel(text = "You Lose! Press s to play again."
+                "\n Your Score was " + str(score) + ".",
+                font_size = 25, x = GAME_WIDTH/2, y = GAME_HEIGHT/2)
+                self._text1 = GLabel(text = "High Score: " + str(self._highscore),
+                font_size = 25, x = GAME_WIDTH/2, y = GAME_HEIGHT/2-100)
+            else:
+
+                self._text = GLabel(text = "GAME OVER. Press s to restart",
+                font_size= 30,font_name= 'Arcade.ttf',x= GAME_WIDTH/2,
+                y= GAME_HEIGHT/2)
+
             self.restart()
 
     def restart(self):

@@ -62,6 +62,12 @@ ALIEN_IMAGES   = ('alien4x.png','alien1x.png','alien2x.png','alien3x.png')
 # the number of seconds (0 < float <= 1) between alien steps
 ALIEN_SPEED = 1.0
 
+#IN ENDLESS MODE: the number of pixels the aliens move down each update
+ALIEN_DOWN = .05
+
+#the number of seconds before the next round of aliens comes in endless mode
+ENDLESS_TIMER = 20
+
 
 ### BOLT CONSTANTS ###
 

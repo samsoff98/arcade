@@ -107,7 +107,7 @@ class Mainclass(GameApp):
 
         self._text1 = GLabel(text="Press 1 for Space Invaders."
         "\n Press 2 for Screensnake. \n Press 3 for Brick Breaker."
-        "\n Press 4 for Minesweeper.",
+        "\n Press 4 for Minesweeper. \n Press 5 for Jumper.",
         font_size = 35, left = GAME_WIDTH//5,
         top = GAME_HEIGHT-200, bold = True, font_name = 'Arcade.ttf')
         self._state = STATE_INACTIVE
@@ -137,7 +137,7 @@ class Mainclass(GameApp):
         """
 
         if self._state == STATE_INACTIVE:
-            self.inactive_to_newwave()
+            self.menu()
 
 
 
@@ -164,12 +164,13 @@ class Mainclass(GameApp):
             self._icon2.draw(self.view)
             self._icon3.draw(self.view)
             self._icon4.draw(self.view)
+            self._icon5.draw(self.view)
 
 
 
 
 
-    def inactive_to_newwave(self):
+    def menu(self):
         """
         Changes the state from STATE_INACTIVE to STATE_NEWWAVE by detecting
         if the key is pressed and released. There are 4 diffuculty setting the
@@ -183,6 +184,7 @@ class Mainclass(GameApp):
         b = self.input.is_key_down("2")
         c = self.input.is_key_down("3")
         d = self.input.is_key_down("4")
+        e = self.input.is_key_down("5")
 
 
 
@@ -203,16 +205,19 @@ class Mainclass(GameApp):
         elif d == True:
             os.system('python Minesweeper')
 
-    def moveText (self):
-        sx = self._text.x
-        a = GAME_WIDTH//2
-        while sx<a:
-            self.setTextPosition(sx+5)
+        elif e == True:
+            os.system('python Jump')
 
-
-    def setTextPosition(self,s):
-        self._text.x = s
-
+    # def moveText (self):
+    #     sx = self._text.x
+    #     a = GAME_WIDTH//2
+    #     while sx<a:
+    #         self.setTextPosition(sx+5)
+    #
+    #
+    # def setTextPosition(self,s):
+    #     self._text.x = s
+    #
     def blackBackground(self):
         list = []
         side = 100
@@ -232,6 +237,7 @@ class Mainclass(GameApp):
         self._icon2 = Image(x = GAME_WIDTH - 150,y = GAME_HEIGHT-250, image = SS_ICON)
         self._icon3 = Image(x = GAME_WIDTH - 150,y = GAME_HEIGHT-285, image = BB_ICON)
         self._icon4 = Image(x = GAME_WIDTH - 150,y = GAME_HEIGHT-320, image = MS_ICON)
+        self._icon5 = Image(x = GAME_WIDTH - 150,y = GAME_HEIGHT-355, image = J_ICON)
 
 
 class Rectangle(GRectangle):

@@ -63,6 +63,7 @@ class Gameplay(object):
         self._hscore = highscore
         self._size = SNAKE_SIZE
         self._time = 0
+        self._ttime = 0
         self._snakeDirection = "left"
         self._snake = self.startSnake()
         self._pointlist = []
@@ -70,12 +71,13 @@ class Gameplay(object):
         self._score = 0
         self._gameover = False
         self._scoreline = None
+        self._timeline = None
         self._colorpress = 0
         self._color  = SNAKE_COLOR
         self._pauseline = GLabel(text = "press p to pause",font_size= 10,
         x= 40, y= GAME_HEIGHT-20)
         self._hscoreline = GLabel(text = "High Score: " + str(self._hscore), font_size = 15,
-        x = GAME_WIDTH -70, y = GAME_HEIGHT-40)
+        right = GAME_WIDTH -10, y = GAME_HEIGHT-45)
         self._wrapline = None
         self._wrap = True
         self._wrappress = 0
@@ -95,7 +97,15 @@ class Gameplay(object):
         has eaten.
         """
         self._scoreline = GLabel(text = ("Score: " + str(self._score)),
-        font_size= 20, x= GAME_WIDTH/2, y= GAME_HEIGHT-30)
+        font_size= 20, x= GAME_WIDTH/2, y= GAME_HEIGHT-40)
+
+    def timeline(self):
+        """
+        Draws the line that gives the amount of time that the game has been going on for
+        """
+        time = round(self._ttime, 1)
+        self._timeline = GLabel(text = ("Time: " + str(time)),
+        font_size= 15, right= GAME_WIDTH-10, y= GAME_HEIGHT-50)
 
     def drawWrap(self):
         """
@@ -442,6 +452,7 @@ class Gameplay(object):
         collided with itself and the game is over.
         """
         self._time +=dt
+        self._ttime += dt
         self.setPoint(input)
         #self.turnSnake()
         self.moveSnake()
@@ -450,6 +461,7 @@ class Gameplay(object):
         self.snake_collision()
         self.check_gameover()
         self.scoreline()
+        self.timeline()
         self.changecolor(input)
         self.color()
         self.changeWrap(input)
@@ -468,6 +480,7 @@ class Gameplay(object):
             r.draw(view)
         self._food.draw(view)
         self._scoreline.draw(view)
+        self._timeline.draw(view)
         self._pauseline.draw(view)
         self._wrapline.draw(view)
         self._hscoreline.draw(view)

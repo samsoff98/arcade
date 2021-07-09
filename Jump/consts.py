@@ -17,7 +17,7 @@ import sys
 #: the width of the game display
 GAME_WIDTH  = 700
 #: the height of the game display
-GAME_HEIGHT = 800
+GAME_HEIGHT = 750
 
 
 ### ALIEN CONSTANTS ###
@@ -29,7 +29,9 @@ RECTANGLE_HEIGHT  = 15
 
 RECTANGLE_START_Y = 100
 
-RECTANGLE_DISTANCE  = 100
+RECTANGLE_DISTANCE  = 80
+
+MAX_DISTANCE = 165
 
 RECTANGLE_DOWN = 1
 
@@ -40,23 +42,19 @@ RECTANGLE_X_MOVEMENT = 5
 
 ### SHIP CONSTANTS ###
 
-# the width of the ball
-BALL_WIDTH    = 44
-# the height of the ball
-BALL_HEIGHT   = 44
-# the distance of the (bottom of the) ball from the bottom of the screen
-BALL_START_Y   = 150
-# The number of pixels to move the ball in the x direction per update
-BALL_X_MOVEMENT = 10
-# The number of pixels to move the ball in the y direction per update
-JUMP_VELOCITY = 10
+# the width of the JUMPER
+JUMPER_WIDTH    = 44
+# the height of the JUMPER
+JUMPER_HEIGHT   = 44
+# the distance of the (bottom of the) JUMPER from the bottom of the screen
+JUMPER_START_Y   = 150
+# The number of pixels to move the JUMPER in the x direction per update
+JUMPER_X_MOVEMENT = 10
+# The number of pixels to move the JUMPER in the y direction per update
+JUMP_VELOCITY = 12
 
 # The decrease in velocity per update
-GRAVITY = -.3
-
-
-
-
+GRAVITY = -.4
 
 
 

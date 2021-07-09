@@ -69,6 +69,13 @@ class Game(object):
         self._scoreline = GLabel(text = ("Bombs Left: " + str(self.bombsLeft)),
         font_size= 20, x= GAME_WIDTH/2, y= GAME_HEIGHT-30)
 
+    def timeline(self):
+        """
+        Draws the line that gives the amount of time that the game has been going on for
+        """
+        time = round(self._time, 1)
+        self._timeline = GLabel(text = ("Time: " + str(time)),
+        font_size= 10, x= GAME_WIDTH-30, y= GAME_HEIGHT-30)
 
 
     def arena(self):
@@ -384,6 +391,7 @@ class Game(object):
         self.dclick(input)
         self.dclickCheck()
         self.scoreline()
+        self.timeline()
         self.check_gameover()
         self.nextScreen(input)
         #self.uncoveredBoxes()
@@ -398,6 +406,7 @@ class Game(object):
         """
         self._helpline.draw(view)
         self._scoreline.draw(view)
+        self._timeline.draw(view)
         for r in self._boxlist:
             for box in r:
                 box.draw(view)
