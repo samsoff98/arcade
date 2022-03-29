@@ -34,131 +34,110 @@ from game2d import *
 class Rectangle(GRectangle):
 
 
-    def __init__(self,x,y, move = False, sjump = False, w= RECTANGLE_WIDTH, h=RECTANGLE_HEIGHT, color = RECTANGLE_COLOR):
+    def __init__(self,x,y,w= RECTANGLE_WIDTH, h=RECTANGLE_HEIGHT, color = RECTANGLE_COLOR):
 
         super().__init__(x=x, y=y, width = w,
         height =h, fillcolor=color)
-        self._direction = "right"
-        self._move = move
-        self._passed = False
-        self._superjump = sjump
-
-
-    def moving(self):
-        """
-        moves the paddle left or right based on the attribute _direction.
-        """
-        p = self.getPaddleX()
-        if self._direction == "right":
-            self.setPaddleX(p+RECTANGLE_X_MOVEMENT)
-        else:
-            self.setPaddleX(p-RECTANGLE_X_MOVEMENT)
-        if self.left < 0:
-            self.left = 0
-            self._direction = "right"
-        if self.right>GAME_WIDTH:
-            self.right = GAME_WIDTH
-            self._direction = "left"
 
 
 
-    def getPaddleX(self):
+    def getPaddlePosition(self):
         """
         returns the x position of the paddle
         """
         return self.x
 
-    def setPaddleX(self,s):
+    def setPaddlePosition(self,s):
         """
         Sets the x position of the paddle
         """
         self.x = s
 
 
-    def getPaddleY(self):
-        """
-        returns the x position of the paddle
-        """
-        return self.y
 
-    def setPaddleY(self,s):
-        """
-        Sets the x position of the paddle
-        """
-        self.y = s
+    def collide (self,ball):
+        for a in range (ball.circle_edge):
+            if self.contains(a):
+                return True
+        return False
 
 
+class Ball(GImage):
 
-class Jumper(GImage):
-    """
-    The class for the jumper.
-    """
-    def __init__(self):
-        """
-        Initializes the jumper object.
-        """
-        super().__init__(x = GAME_WIDTH/2, y = JUMPER_START_Y,
-        width = JUMPER_WIDTH, height = JUMPER_HEIGHT, source = 'jumper.png')
-
+    def __init__(self,x,y=PADDLE_BOTTOM+PADDLE_HEIGHT+CIRCLE_DIAMETER/2):
+        super().__init__(x = GAME_WIDTH/2, y = SHIP_BOTTOM,
+        width = SHIP_WIDTH, height = SHIP_HEIGHT, source = 'ship.png')
 
 
 
 
     def getXDirection(self):
-        """
-        returns the xdirection attribute.
-        """
         if self.movex > 0:
             self.xdirection = "right"
         else:
             self.xdirection = "left"
         return self.xdirection
 
-    def getJumperX(self):
-        """
-        returns the x value of the jumper
-        """
+    def getBallX(self):
         return self.x
 
-    def setJumperX(self,s):
-        """
-        sets the x value of the jumper
-        """
+    def setBallX(self,s):
         self.x = s
 
-    def getJumperY(self):
-        """
-        returns the y value of the jumper
-        """
+    def getBallY(self):
         return self.y
 
-    def setJumperY(self,s):
-        """
-        sets the y value of the jumper
-        """
+    def setBallY(self,s):
         self.y = s
 
 
+    def contains(self,x,y):
+        r = CIRCLE_DIAMETER/2.0
+        dx = (x-self.x)*(x-self.x)/(r*r)
+        dy = (y-self.y)*(y-self.y)/(r*r)
+        return (dx*dy)<=1
 
+    def circumference(self):
 
+        list = []
+        h = int(self.x)
+        k = int(self.y)
+        r = int(CIRCLE_DIAMETER/2)
+        c = int(CIRCLE_DIAMETER)
+        for x in range (h-c, h+c):
+            for y in range (k-c, k+c):
+                if ((x-h)*(x-h)) + ((y-k)*(y-k)) == r*r:
+                    list.append((x,y))
+        return list
 
-    def move_jumper_x(self,distance):
         """
-        This method moves the alien in the x direction based on the parameter "distance".
-        It also prevents the jumper from moving off the screen by being to far to the
-        right or left.
+        for a in range(100):
+            x = r*math.cos(a)+h
+            y = r*math.sin(a)+k
+            list.append((x,y))
         """
-        p = self.getJumperX()
-        self.setJumperX(p+distance)
+
+
+
+    def move_ship(self,distance):
+        """
+        This method moves the ship if the player signals to do so. It is called
+        by the update_ship method in wave to move the ship when the left and
+        right arrows are pressed. It also makes sure the ship doesnt move off the
+        screen.
+        """
+        p = self.getBallX()
+        self.setBallX(p+distance)
         if self.left < 0:
             self.left = 0
         if self.right>GAME_WIDTH:
             self.right = GAME_WIDTH
 
 
-    def move_jumper_y(self,distance):
-        """
-        This method moves the alien in the y direction based on the parameter "distance".
-        """
-        p = self.getJumperY()
-        self.setJumperY(p+distance)
+
+    def bounceX(self):
+        self.movex = -self.movex
+
+
+    def bounceY(self):
+        self.movey = -self.movey
