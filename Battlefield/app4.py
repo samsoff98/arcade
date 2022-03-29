@@ -9,38 +9,6 @@ from round import *
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class BattleGame(GameApp):
 
     # DO NOT MAKE A NEW INITIALIZER!
@@ -254,7 +222,7 @@ class BattleGame(GameApp):
         elif self.level == 9:
             self.wave = Round(self.level, 0,0, 40, 50, 1500)
         elif self.level == 10:
-            self.wave = Round(self.level, 0,0, 50, 200, 16000)
+            self.wave = Round(self.level, 0,0, 50, 200, 1600)
         self.state = STATE_ACTIVE
 
     # def active_to_paused(self):

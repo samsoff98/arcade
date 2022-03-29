@@ -144,6 +144,7 @@ class Soldier(GImage):
         self.minerchangecolor = 0
         self.shotcooldown = 0
         self.end = False
+        
 
         super().__init__(x = x, y = y,
         width = SOLDIER_WIDTH, height = SOLDIER_HEIGHT, source = i)

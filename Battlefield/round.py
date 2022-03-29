@@ -274,31 +274,10 @@ class Round(object):
         self.castlehealthline = GLabel(text = ("Castle Health: " + str(t)),
         font_size= 20, left= 10, y= self.aBottom-10)
 
-    # def draw_unit_health(self):
-    #     """
-    #     draws the health of each soldier and alien
-    #     """
-    #     list = []
-    #     for i in self.soldier_list:
-    #         health = i.health
-    #         x = i.x
-    #         y = i.y
-    #         tot = GLabel(text = (str(health)),
-    #         font_size= 15, x= x, y= y-42)
-    #         list.append(tot)
-    #
-    #     for j in self.alienlist:
-    #         health = j.health
-    #         x = j.x
-    #         y = j.y
-    #         tot = GLabel(text = (str(health)),
-    #         font_size= 15, x= x, y= y-42)
-    #         list.append(tot)
-    #
-    #     self.unithealthlist = list
 
 
-    def draw_unit_health(self, r):
+
+    def draw_unit_health(self):
         """
         draws the health of each soldier and alien
         """
@@ -709,25 +688,16 @@ class Round(object):
         for a in range(a4):
             list.append(4)
 
-
-
         random.shuffle(list)
 
         ##This prevents a Class 4 alien from appearing in the first 10 aliens
         s = list[0:15]
         add = []
         for a in s:
-
             if a == 4:
                 add+=[a]
                 list.remove(a)
-
-
         list += add
-        # print(add)
-        # print(list)
-
-
         return list
 
 
@@ -742,31 +712,7 @@ class Round(object):
 
         """
 
-
-
-
         for i in self.aliens_to_go:
-        #     #y = -3ln(x) + 10 where x is the number of aliens killed, to determine how quickly the aliens come out
-        #     # this way the round starts at 10 seconds between aliens and ends at 0 seconds
-        #     x = self.killcount
-        #     if x ==0:
-        #         x=.01 #since ln(0) is an error
-        #     j = math.log(x)
-        #     t = -1.3*j + 6
-        #
-        #     # t = (-10/self.num_aliens)*self.killcount +10   #y = (-10/j)x + 10
-        #     # if self.killcount >=15:
-        #     #     t = 2
-        #     # if self.killcount >=20:
-        #     #     t=.5
-
-            #
-            #
-            # if t <=.5:
-            #     t = .5
-
-
-
             if self.alientimer > self.alienrespawntime:
                 self.aliens_to_go.remove(i)
                 r = random.randint(1,4)
@@ -811,10 +757,6 @@ class Round(object):
                     # print("e")
                     # print(e)
                     # print()
-
-
-
-
 
 
     def mine_coins(self):
