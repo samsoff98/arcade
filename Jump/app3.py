@@ -1,14 +1,4 @@
-"""
-Primary module for Alien Invaders
 
-This module contains the main controller class for the Alien Invaders application. There
-is no need for any additional classes in this module.  If you need more classes, 99% of
-the time they belong in either the wave module or the models module. If you are unsure
-about where a new class should go, post a question on Piazza.
-
-# YOUR NAME(S) AND NETID(S) HERE: Sam Soff sps239
-# DATE COMPLETED HERE: 5/6/19
-"""
 from consts import *
 from game2d import *
 from wave import *
@@ -186,7 +176,7 @@ class Jumper(GameApp):
         self._text = GLabel(text="Game Paused. Press P to continue."
         " \n Press left and right to move the jumper."
         "\n If you fall off the screen you lose",
-        font_size = 25, left = GAME_WIDTH/4, bottom = GAME_HEIGHT/3,
+        font_size = 25, x = GAME_WIDTH/2, y = GAME_HEIGHT/2,
         bold = True)
 
         current = self.input.is_key_down("p")

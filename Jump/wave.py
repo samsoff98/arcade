@@ -39,8 +39,7 @@ class JumpGame(object):
         self._time = 0 #the time of the game
         self._score = 1 #the score of the game
         self._gameover = 'no' #whether or not the game is over
-        self._pauseline = GLabel(text = "press p to pause",font_size= 15,
-        x= GAME_WIDTH/2, y= GAME_HEIGHT-20) #draws the pause line
+        self._pauseline = GLabel(text = "press p to pause and for instructions",font_size= 20, x= GAME_WIDTH/2, y= GAME_HEIGHT-10) #draws the pause line
         self._scoreline = None #draws the score
         self._press = 0 #checks if a button has been pressed in this update
         self._timeline = None #draws the time
@@ -215,7 +214,7 @@ class JumpGame(object):
         t = jumper.top
         b = jumper.bottom
         for x in self._platforms:
-            if x.contains((l,b)) or x.contains((r,b)) and self._velocity<0 and jumper.y < GAME_HEIGHT:
+            if (x.contains((l,b)) or x.contains((r,b))) and self._velocity<GRAVITY and jumper.y < GAME_HEIGHT:
                 if x._superjump:
                     return "sjump"
                 else:

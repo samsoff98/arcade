@@ -65,7 +65,12 @@ class Gameplay(object):
         self._time = 0
         self._ttime = 0
         self._snakeDirection = "left"
-        self._snake = self.startSnake()
+
+        sl,dl = self.startSnake()
+        self._snake = sl
+        self._directionlist = dl
+
+
         self._pointlist = []
         self._food = self.food()
         self._score = 0
@@ -74,10 +79,9 @@ class Gameplay(object):
         self._timeline = None
         self._colorpress = 0
         self._color  = SNAKE_COLOR
-        self._pauseline = GLabel(text = "press p to pause",font_size= 10,
-        x= 40, y= GAME_HEIGHT-20)
+        self._pauseline = GLabel(text = "press p to pause and for instructions",font_size= 20, x= GAME_WIDTH/2, y= GAME_HEIGHT-10)
         self._hscoreline = GLabel(text = "High Score: " + str(self._hscore), font_size = 15,
-        right = GAME_WIDTH -10, y = GAME_HEIGHT-45)
+        right = GAME_WIDTH -10, y = GAME_HEIGHT-20)
         self._wrapline = None
         self._wrap = True
         self._wrappress = 0
@@ -86,6 +90,7 @@ class Gameplay(object):
         self._grid = self.grid()
         self._gridswitch = True
         self._gridpress = 0
+
 
 
 
@@ -105,14 +110,14 @@ class Gameplay(object):
         """
         time = round(self._ttime, 1)
         self._timeline = GLabel(text = ("Time: " + str(time)),
-        font_size= 15, right= GAME_WIDTH-10, y= GAME_HEIGHT-50)
+        font_size= 15, right= GAME_WIDTH-10, y= GAME_HEIGHT-30)
 
     def drawWrap(self):
         """
         illustrates if the wrap-around setting is on or not
         """
         self._wrapline = GLabel(text = ("Wrap-around: " + str(self._wrap)),
-        font_size= 10, x= 40, y= GAME_HEIGHT-30)
+        font_size= 15, x= 75, y= GAME_HEIGHT-10)
 
     def grid(self):
         """
@@ -202,11 +207,14 @@ class Gameplay(object):
         left.
         """
 
-        list = []
+        snakelist = []
+        directionlist = []
         for x in range(self._size):
-            list.append(Rectangle(x = GAME_WIDTH/2+(x*SIDE_LENGTH),
+            snakelist.append(Rectangle(x = GAME_WIDTH/2+(x*SIDE_LENGTH),
             y = GAME_HEIGHT/2,d = self._snakeDirection))
-        return list
+            directionlist.append(self._snakeDirection)
+
+        return snakelist, directionlist
 
 
     def setPoint(self,input):
@@ -216,24 +224,39 @@ class Gameplay(object):
         Each Turn point has an X and Y coordinate, as well as the direction the
         snake is supposed to turn.
         """
-        if self._time > self._turnspeed and self.turnlimit():
-            first = self._snake[0]
-            firstD = first.getDirection()
+
+        first = self._snake[0]
+        firstD = first.getDirection()
+
+        if self.turnlimit(): #(self._time > self._turnspeed) and
+            #self._time = 0
+
             d = None
             if input.is_key_down("left") and firstD != "right":
                 d = "left"
-            if input.is_key_down("right") and firstD != "left":
+            elif input.is_key_down("right") and firstD != "left":
                 d = "right"
-            if input.is_key_down("up") and firstD != "down":
+            elif input.is_key_down("up") and firstD != "down":
                 d = "up"
-            if input.is_key_down("down") and firstD != "up":
+            elif input.is_key_down("down") and firstD != "up":
                 d = "down"
+
             if d != None:
-                first.setDirection(d)
-                turn = Turn(first.x,first.y,d)
-                self._pointlist.append(turn)
-                self._snakeDirection = d
-            self._time = 0
+                self._directionlist.insert(0,d)
+                self._directionlist.pop()
+                #print("")
+                #print(self._directionlist)
+            else:
+                self._directionlist.insert(0,firstD)
+                self._directionlist.pop()
+                #print("test")
+                #print(self._directionlist)
+        #         first.setDirection(d)
+        #         turn = Turn(first.x,first.y,d)
+        #         self._pointlist.append(turn)
+        #         self._snakeDirection = d
+        #print(self._directionlist)
+
 
     def turnlimit (self):
         """
@@ -246,52 +269,31 @@ class Gameplay(object):
         if x % SIDE_LENGTH == 0 and y%SIDE_LENGTH == 0:
             return True
 
-    def removePoint(self):
-        """
-        This removes a Turn point when the last box in the snake has reached the
-        Turn point coordinate.
-        """
-        lastIndex = len(self._snake)-1
-        last = self._snake[lastIndex]
-
-        for a in self._pointlist:
-            px = a.x
-            py = a.y
-            if last.x == px and last.y == py:
-                last._direction = a.d
-                self._pointlist.remove(a)
-
-
-    def turnSnake(self, rect):
-        """
-        This method causes the snake to turn. It loops through the individual
-        boxes in the snake and if a box has the same coordinates as a Turn point
-        then the box's direction is set to the Turn point direction, and the box
-        starts moving in the new direction.
-        """
-        lastIndex = len(self._snake)-1
-        last = self._snake[lastIndex]
-
-        for a in self._pointlist:
-            px = a.x
-            py = a.y
-            if rect.x == px and rect.y == py:
-                rect._direction = a.d
-                if rect.x == last.x and rect.y == last.y:
-                    self._pointlist.remove(a)
-
-
     def moveSnake(self):
         """
         Applies the moveBox method to each box in the snake. This causes each
         box to move in whichever direction it has.
         """
+        for a in range(len(self._snake)):
+            #print(a)
+            box = self._snake[a]
+            boxd = box._direction
 
-        for r in self._snake:
-            self.turnSnake(r)
-            r.moveBox()
+            dir = self._directionlist[a]
+            if box.x % SIDE_LENGTH == 0 and box.y%SIDE_LENGTH == 0:
+                box._direction = dir
+            else:
+                box._direction = boxd
+
+
+            box.moveBox()
             if self._wrap:
-                r.wraparound()
+                box.wraparound()
+
+        # for r in self._snake:
+        #     self.turnSnake(r)
+        #     r.moveBox()
+
 
 
 
@@ -320,6 +322,9 @@ class Gameplay(object):
                 self.grow()
                 self._food = self.food()
                 self._score += 1
+                end_direction = self._directionlist[-1]
+                self._directionlist.append(end_direction)
+                #print(self._directionlist)
 
     def collide(self):
         """
@@ -391,7 +396,7 @@ class Gameplay(object):
         two points are the bottom left and bottom right corners of the first box.
         If the snake is moving to the right, the front two points are the top right
         and bottom right corners of the first box. This method returns the two
-        points are a tuple.
+        points as a tuple.
         """
         first = self._snake[0]
         firstD = first.getDirection()
@@ -453,9 +458,10 @@ class Gameplay(object):
         """
         self._time +=dt
         self._ttime += dt
-        self.setPoint(input)
+
         #self.turnSnake()
         self.moveSnake()
+        self.setPoint(input)
         #self.removePoint()
         self.eat()
         self.snake_collision()
@@ -487,7 +493,10 @@ class Gameplay(object):
         if self._gridswitch:
             for line in self._grid:
                 line.draw(view)
+        q = GPath(points=[SIDE_LENGTH,0,SIDE_LENGTH/2, GAME_HEIGHT],
+                                  linewidth=2, linecolor=introcs.RGB(0,200,0))
 
+        #q.draw(view)
 
 
 
@@ -561,6 +570,8 @@ class Rectangle(GRectangle):
         """
         dx = 0
         dy = 0
+
+
         if self._direction == "right":
             dx += SNAKE_SPEED
             self.moveX(dx)
@@ -581,19 +592,19 @@ class Rectangle(GRectangle):
         screen.
         """
         count = 0
-        if self.left <= 0 and self._direction == "left":
+        if self.x <= 0 and self._direction == "left":
             newX = GAME_WIDTH
             newY = self.y
             count = 1
-        elif self.right >= GAME_WIDTH and self._direction == "right":
+        elif self.x >= GAME_WIDTH and self._direction == "right":
             newX = 0
             newY = self.y
             count = 1
-        elif self.bottom <= 0 and self._direction == "down":
+        elif self.y <= 0 and self._direction == "down":
             newX = self.x
             newY = GAME_HEIGHT
             count = 1
-        elif self.top >= GAME_HEIGHT and self._direction == "up":
+        elif self.y >= GAME_HEIGHT and self._direction == "up":
             newX = self.x
             newY = 0
             count = 1

@@ -107,12 +107,14 @@ class Mainclass(GameApp):
 
         self._text1 = GLabel(text="Press 1 for Space Invaders."
         "\n Press 2 for Screensnake. \n Press 3 for Brick Breaker."
-        "\n Press 4 for Minesweeper. \n Press 5 for Jumper.",
+        "\n Press 4 for Minesweeper. \n Press 5 for Jumper. \n Press 6 for Battlefield."
+        "\n Press 7 for Mastermind.",
         font_size = 35, left = GAME_WIDTH//5,
         top = GAME_HEIGHT-200, bold = True, font_name = 'Arcade.ttf')
         self._state = STATE_INACTIVE
         self._wave = None
         self._background = self.blackBackground()
+        self._press = 0
         self.icons()
 
     def update(self,dt):
@@ -155,9 +157,7 @@ class Mainclass(GameApp):
         """
         state = self._state
         if state == STATE_INACTIVE:
-
-            for r in self._background:
-                r.draw(self.view)
+            self._background.draw(self.view)
             self._text.draw(self.view)
             self._text1.draw(self.view)
             self._icon1.draw(self.view)
@@ -165,6 +165,8 @@ class Mainclass(GameApp):
             self._icon3.draw(self.view)
             self._icon4.draw(self.view)
             self._icon5.draw(self.view)
+            self._icon6.draw(self.view)
+            self._icon7.draw(self.view)
 
 
 
@@ -179,34 +181,51 @@ class Mainclass(GameApp):
         difficulty. The range of difficulties is based on how many rows and columns
         of aliens there are, as well as the speed at which the aliens move.
         """
-
         a = self.input.is_key_down("1")
         b = self.input.is_key_down("2")
         c = self.input.is_key_down("3")
         d = self.input.is_key_down("4")
         e = self.input.is_key_down("5")
+        f = self.input.is_key_down("6")
+        g = self.input.is_key_down("7")
 
 
+        if a or b or c or d or e or f or g:
+            current = True
+        else:
+            current = False
+        change = current>0 and self._press == 0
 
-        if a == True:
-            #app1.Invaders(width=800, height=700).run()
+        if change:
 
-            os.system('python space\ invaders')
+            if a == True:
+                #app1.Invaders(width=800, height=700).run()
+                os.system('python space\ invaders')
 
 
-        elif b == True:
-            #app2.Mainclass(width = 50, height = 50).run()
-            os.system('python snake')
+            elif b == True:
+                #app2.Mainclass(width = 50, height = 50).run()
+                os.system('python snake')
 
-        elif c == True:
-            #app3.Mainclass(width = GAME_WIDTH, height = GAME_HEIGHT).run()
-            os.system('python brick\ breaker')
+            elif c == True:
+                #app3.Mainclass(width = GAME_WIDTH, height = GAME_HEIGHT).run()
+                os.system('python brick\ breaker')
 
-        elif d == True:
-            os.system('python Minesweeper')
+            elif d == True:
+                os.system('python Minesweeper')
 
-        elif e == True:
-            os.system('python Jump')
+            elif e == True:
+                os.system('python Jump')
+
+            elif f == True:
+                os.system('python Battlefield')
+
+            elif g == True:
+                os.system('python Mastermind')
+
+        self._press = current
+
+
 
     # def moveText (self):
     #     sx = self._text.x
@@ -219,16 +238,19 @@ class Mainclass(GameApp):
     #     self._text.x = s
     #
     def blackBackground(self):
-        list = []
-        side = 100
-        a = int(GAME_WIDTH/side)
-        b = int(GAME_HEIGHT/side)
-        for x in range(a):
-            for y in range(b):
-                color = introcs.RGB(160,220,250)
-                r = Rectangle(x*side+side/2, y*side+side/2, side, color)
-                list.append(r)
-        return list
+        c = introcs.RGB(160,220,250)
+        r = Rectangle(x=GAME_WIDTH/2, y=GAME_HEIGHT/2, color=c )
+        return r
+        # list = []
+        # side = 100
+        # a = int(GAME_WIDTH/side)
+        # b = int(GAME_HEIGHT/side)
+        # for x in range(a):
+        #     for y in range(b):
+        #         color = introcs.RGB(160,220,250)
+        #         r = Rectangle(x*side+side/2, y*side+side/2, side, color)
+        #         list.append(r)
+        # return list
 
 
     def icons(self):
@@ -238,6 +260,8 @@ class Mainclass(GameApp):
         self._icon3 = Image(x = GAME_WIDTH - 150,y = GAME_HEIGHT-285, image = BB_ICON)
         self._icon4 = Image(x = GAME_WIDTH - 150,y = GAME_HEIGHT-320, image = MS_ICON)
         self._icon5 = Image(x = GAME_WIDTH - 150,y = GAME_HEIGHT-355, image = J_ICON)
+        self._icon6 = Image(x = GAME_WIDTH - 150,y = GAME_HEIGHT-390, image = BF_ICON)
+        self._icon7 = Image(x = GAME_WIDTH - 150,y = GAME_HEIGHT-425, image = MM_ICON)
 
 
 class Rectangle(GRectangle):
@@ -245,14 +269,14 @@ class Rectangle(GRectangle):
     This class is for a single Rectangle. A snake is a compilation of boxes.
     """
 
-    def __init__(self,x,y,side, color):
+    def __init__(self,x,y,color):
         """
         Creates a rectangle with specific x and y coordinates, as well as a
         direction. It also gives the box a height and width of SIDE_LENGTH,
         sets the snake velocity to SNAKE_SPEED and colors the snake based on
         SNAKE_COLOR.
         """
-        super().__init__(x=x, y=y, width = side, height = side)
+        super().__init__(x=x, y=y, width = GAME_WIDTH, height = GAME_HEIGHT)
         self.fillcolor = color
 
 

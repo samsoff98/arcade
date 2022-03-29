@@ -37,15 +37,18 @@ class Game(object):
         self._highscore = hscore
         self._gameover = 'no'
         self._grid = self.grid()
-        self._press = 0
+        self.press = 0
+        self.d = None
 
-        self._arena_x1 = None 
-        self._arena_x2 = None 
-        self._arena_y1 = None 
-        self._arena_y2 = None 
+        self._arena_x1 = None
+        self._arena_x2 = None
+        self._arena_y1 = None
+        self._arena_y2 = None
 
         self._arena = self.arena()
         self._boxlist= self.start()
+        self.occupied = self.occupiedList()
+        print(self.occupied)
         self._speed = 0.1
         self._movetimer = 0
 
@@ -106,22 +109,22 @@ class Game(object):
 
         alist = []
 
-        self._arena_x1 = left 
-        self._arena_x2 = right 
-        self._arena_y1 = bottom 
-        self._arena_y2 = top 
+        self._arena_x1 = left
+        self._arena_x2 = right
+        self._arena_y1 = bottom
+        self._arena_y2 = top
 
         startx = left + SIDE_LENGTH/2
         starty = bottom + SIDE_LENGTH/2
-        
-        
+
+
 
 
         for i in range(columns):
             list = []
 
             for j in range(rows):
-                
+
                 # if (a+b)%2 == 0:
                 #     color = 'color.png'
                 # else:
@@ -177,23 +180,185 @@ class Game(object):
         xx = leftborder + SIDE_LENGTH/2 + c*SIDE_LENGTH
         yy = bottomborder + SIDE_LENGTH/2 + r*SIDE_LENGTH
         newb = Box(x=xx, y=yy, row = r, col = c, color = introcs.RGB(0,0,200))
+        self._arena[c][r].occupied = True
+
+        # for a in self._arena:
+        #     for b in a:
+        #         if b.occupied:
+        #             print(b.x, b.y)
 
         return newb
 
-    def move(self,input):
-        m = False
+
+
+    def move (self,input):
+
         if input.is_key_down("left"):
+
+            self.d = "left"
+            move = True
+            current = True
+            self.move_left()
+            # p = b.x
+            # b.setXPosition(p-1)
+        elif input.is_key_down("right"):
+            self.d = "right"
+            move = True
+            current = True
+        elif input.is_key_down("up"):
+            self.d = "up"
+            move = True
+            current = True
+        elif input.is_key_down("down"):
+            self.d = "down"
+            move = True
+            current = True
+        else:
+            move = False
+            current = False
+
+        change = current == True and self.press ==0
+
+        if move and change:
+            #print(self.occupied)
             for b in self._boxlist:
-                m = False
-                while b.x > SIDE_LENGTH/2:
-                    if self._movetimer > self._speed:
-                        
-                        b.move_box(-BOX_MOVEMENT)
-                        self._movetimer = 0
+                b.move = move
+                #self.control_move(b)
+            #print(self.occupied)
+        self.press = current
 
-            
+        if input.is_key_down("r"):
+            print(self.occupied)
 
 
+
+
+    def move_left(self):
+        list = []
+        for b in self._boxlist:
+            c = b.col
+            r = b.row
+            x = b.x
+            left_blocked = False
+            while left_blocked==False:
+                if b.col >= 0:
+                    left_blocked = self._arena[c-1][r].occupied
+                else:
+                    left_blocked = True
+                stop = x-SIDE_LENGTH
+                if left_blocked == False:
+                    b.moveX(stop,"left")
+
+                    print(b.col)
+
+
+
+    # def control_move(self,box):
+    #     xpos = box.x
+    #     ypos = box.y
+    #     c = box.col
+    #     r = box.row
+    #     max = len(self._arena)-1
+    #     stop = True
+    #     # if r == max or c == max or r == 0 or c == 0:
+    #     #     stop=True
+    #
+    #
+    #     if self.d == "up":
+    #         if (r != max and (self.occupied[(c,r+1)]==False)):
+    #
+    #             self.move_over(box)
+    #             print(1)
+    #             print(c,r)
+    #
+    #     elif self.d == "down":
+    #         while (r!=0 and self.occupied[(c,r-1)] == False):
+    #
+    #             self.move_over(box)
+    #             print(2)
+    #             print(c,r)
+    #
+    #     elif self.d == "right":
+    #         while (c!=max and self.occupied[(c+1,r)] == False):
+    #
+    #             self.move_over(box)
+    #             print(3)
+    #
+    #     elif self.d == "left":
+    #         while (c!=0 and self.occupied[(c-1,r)] == False):
+    #
+    #             self.move_over(box)
+    #             print(4)
+    #
+    #     # if stop == False:
+    #     #     print("hihi")
+    #     #     self.move_over(box)
+    #
+    def move_over(self,box):
+        xpos = box.x
+        ypos = box.y
+        c = box.col
+        r = box.row
+        #box.move = True
+        if self.d == "up":
+            stopx = xpos
+            stopy = ypos + SIDE_LENGTH
+            box.moveY(stopy, self.d)
+        elif self.d == "down":
+            stopx = xpos
+            stopy = ypos - SIDE_LENGTH
+            box.moveY(stopy, self.d)
+        elif self.d == "right":
+            stopx = xpos +SIDE_LENGTH
+            stopy = ypos
+            box.moveX(stopx, self.d)
+        elif self.d == "left":
+            stopx = xpos - SIDE_LENGTH
+            stopy = ypos
+            print("sup")
+            print(xpos)
+            print(stopx)
+            box.moveX(stopx, self.d)
+        #self.occupied = self.occupiedList()
+
+
+
+
+    def occupiedList (self):
+        dict = {}
+        for a in range(len(self._arena)):
+            for b in range(len(self._arena[0])):
+                occ = False
+                for box in self._boxlist:
+                    x = box.x
+                    y=box.y
+                    if self._arena[a][b].contains((x,y)):
+                        #print((a,b))
+                        occ = True
+                self._arena[a][b].occupied = occ
+
+
+                dict[(a,b)] = self._arena[a][b].occupied
+        #         print((a,b))
+        #         print(self._arena[a][b].occupied)
+        # print()
+        # print("1,1")
+        # print(dict[1,1])
+        # print()
+        # print("2,0")
+        # print(dict[2,0])
+
+        return dict
+        #
+        # list = []
+        # for a in self._arena:
+        #     alist = []
+        #     for b in a:
+        #         status = b.occupied
+        #         alist.append(status)
+        #     list.append(alist)
+        # rez = [[list[j][i] for j in range(len(list))] for i in range(len(list[0]))] #transpose
+        # return rez
 
 
 
@@ -234,6 +399,7 @@ class Game(object):
 
         self.arena()
         self.move(input)
+        self.occupied = self.occupiedList()
         # self.click(input)
         # self.clickCheck()
         # self.dclick(input)

@@ -50,6 +50,7 @@ class Game(object):
         self.bombsLeft = numbombs
         self._helpline = GLabel(text = "Click to open the boxes. \n Shift+click to diffuse bomb",font_size= 20,
         x= GAME_WIDTH/2, y= GAME_HEIGHT-100)
+        self._pauseline =GLabel(text = "press p to pause and for instructions",font_size= 20, x= GAME_WIDTH/2, y= GAME_HEIGHT-10)
 
 
 
@@ -75,7 +76,7 @@ class Game(object):
         """
         time = round(self._time, 1)
         self._timeline = GLabel(text = ("Time: " + str(time)),
-        font_size= 10, x= GAME_WIDTH-30, y= GAME_HEIGHT-30)
+        font_size= 20, x= GAME_WIDTH-30, y= GAME_HEIGHT-20)
 
 
     def arena(self):
@@ -383,7 +384,8 @@ class Game(object):
         This method Animates a single frame in the game. It sets the arena, checks
         for clicks and double clicks, etc.
         """
-        self._time +=dt
+        if self._gameover == 'no':
+            self._time +=dt
 
         self.arena()
         self.click(input)
@@ -404,6 +406,7 @@ class Game(object):
         This method draws the various objects in the game, specifically the snake
         and the food
         """
+        self._pauseline.draw(view)
         self._helpline.draw(view)
         self._scoreline.draw(view)
         self._timeline.draw(view)

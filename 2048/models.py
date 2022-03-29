@@ -27,15 +27,72 @@ class Box(GRectangle):
         self.col = col
         self.linewidth = 10
         self.occupied = occupied
+        self.move = False
 
 
-    def move_box(self,distance):
+    # def move_box(self,distance):
+    #     p = self.getXPosition()
+    #     self.setXPosition(p+distance)
+    #     if self.left < ARENA_LEFT:
+    #         self.left = ARENA_LEFT
+    #     if self.right> ARENA_RIGHT:
+    #         self.right = ARENA_RIGHT
+
+    def moveX(self,stop, dir):
+        """
+        moves the rectangle in the x position by increasing its position by
+        distance amount
+        """
+
         p = self.getXPosition()
-        self.setXPosition(p+distance)
+
+        if dir == "left":
+            while p > stop:
+                self.setXPosition(p-SPEED)
+                p=p-SPEED
+            print ("col: ")
+            print(self.col)
+            self.col -=1
+            print(self.col)
+                #print(p)
+        if dir == "right":
+            while p < stop:
+                self.setXPosition(p+SPEED)
+                p=p+SPEED
+            self.col +=1
+                #print(p)
         if self.left < ARENA_LEFT:
             self.left = ARENA_LEFT
-        if self.right> ARENA_RIGHT:
+            self.col = 0
+        if self.right>ARENA_RIGHT:
             self.right = ARENA_RIGHT
+            self.col = 3
+
+
+
+    def moveY(self,stop, dir):
+        """
+        moves the rectangle in the y position by increasing its position by
+        distance amount
+        """
+        p = self.getYPosition()
+
+        if dir == "down":
+            while p > stop:
+                self.setYPosition(p-SPEED)
+                p=p-SPEED
+            self.row -=1
+                #print(p)
+        if dir == "up":
+            while p < stop:
+                self.setYPosition(p+SPEED)
+                p=p+SPEED
+            self.row +=1
+                #print(p)
+        if self.bottom < ARENA_BOTTOM:
+            self.bottom = ARENA_BOTTOM
+        if self.top>ARENA_TOP:
+            self.top = ARENA_TOP
 
     ###Getters and Setters
     def getXPosition(self):

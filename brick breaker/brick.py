@@ -76,8 +76,7 @@ class Gameplay(object):
         self._draw_lives = self.draw_lives()
         self._playLevel = level
         self._draw_level = None
-        self._pauseline = GLabel(text = "press p or space to pause",font_size= 15,
-        x= GAME_WIDTH/2, y= GAME_HEIGHT-10)
+        self._pauseline = GLabel(text = "press p to pause and for instructions",font_size= 20,x= GAME_WIDTH/2, y= GAME_HEIGHT-10)
         self._survivor = survivor
         self._press = 0
         self._draw_survivor = self.draw_survivor()
@@ -103,7 +102,7 @@ class Gameplay(object):
             roundy = round(self._ball.movey, 1)
             self._draw_speed = GLabel(text = ("x speed: " + str(roundx) +
             "\n y speed: " + str(roundy)),
-            font_size= 10, x= GAME_WIDTH-40, y= GAME_HEIGHT-50)
+            font_size= 10, x= GAME_WIDTH-40, y= GAME_HEIGHT-20)
 
     def change_survivor(self, input):
         """
@@ -189,7 +188,7 @@ class Gameplay(object):
         self.draw_level()
         self.change_survivor(input)
         self.draw_speed()
-        
+
         #self.cornercheck()
 
 

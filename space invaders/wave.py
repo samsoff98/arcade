@@ -165,7 +165,7 @@ class Wave(object):
         self._shotrate = random.randint(1,BOLT_RATE)
         self._collided = False
         self._gameover = 'no'
-        self._pauseline = GLabel(text = "press p to pause",font_size= 20,
+        self._pauseline = GLabel(text = "press p to pause and for instructions",font_size= 20,
         font_name= 'Arcade.ttf', x= GAME_WIDTH/2, y= GAME_HEIGHT-10)
         self._sound = 0
         self._press = 0
@@ -185,7 +185,7 @@ class Wave(object):
         self._hscoreline = GLabel(text = phrase + str(self._hscore), font_size = 15,
         right = GAME_WIDTH-10, y = GAME_HEIGHT-40)
 
-    def alien_wave(self):
+    def alien_wave(self, u = 0):
         """
         Initializes the 2d list of aliens in the wave.
 
@@ -194,6 +194,9 @@ class Wave(object):
         accounts for the different alien images based on the row.
         Finally, it places the aliens in the proper positions away from each
         other and from the edges of the window.
+
+        The parameter x allows the alien wave to be placed at any x value on the
+        screen, so the wave can align with the existing aliens in endless mode.
         """
         if self._endless:
             if self._score == 0:
@@ -212,19 +215,25 @@ class Wave(object):
             list = []
             for alien in range(self._columns):
                 x = (self._rows-r-1)//2
-                list.append(Alien(left=(ALIEN_H_SEP*(alien+1)+alien*ALIEN_WIDTH),
+                list.append(Alien(left=(ALIEN_H_SEP*(alien+1)+alien*ALIEN_WIDTH+u),
                 top=((ceiling)-(r*(ALIEN_HEIGHT+ALIEN_V_SEP))),
                 source=ALIEN_IMAGES[x%4]))
             alist.append(list)
+        #alist[0][1].fillcolor = introcs.RGB(0,0,0)
         return alist
 
 
     def endless_wave(self):
         if self._endless == True:
-            if self._etime > ENDLESS_TIMER:
-                newWave = self.alien_wave()
-                self._aliens.extend(newWave)
-                self._etime = 0
+            a = self.leftmost_alien()
+            u = a.left-ALIEN_WIDTH//2-5
+            if a is not None:
+
+                if self._etime > ENDLESS_TIMER: #and a.x <= ALIEN_H_SEP+ALIEN_WIDTH/2:
+                    newWave = self.alien_wave(u)
+                    self._aliens += (newWave)
+
+                    self._etime = 0
 
     def draw_lives(self):
         """
@@ -317,6 +326,7 @@ class Wave(object):
         self.shoot_bomb(input)
         self.move_bomb()
         self.bomb_collision()
+
 
         self.timeline()
         self.scoreline()
@@ -438,6 +448,22 @@ class Wave(object):
                     top = alien
         return top
 
+
+    def bottommost_alien(self):
+        """
+        Loops through the 2d list of aliens to find the rightmost one.
+        This is used by the update_aliens, as when the rightmost alien gets to
+        the right side of the screen the aliens move down and start going to the left.
+        """
+        max = 0
+        top = None
+        for col in self._aliens:
+            for alien in col:
+                if alien is not None and alien.y< min:
+                    min = alien.y
+                    bottom = alien
+        return bottom
+
     def aliens_right(self):
         """
         Moves all of the aliens one ALIEN_H_WALK unit to the right.
@@ -492,6 +518,7 @@ class Wave(object):
             self._bolts.append(Bolt(x,y,BOLT_SPEED))
             if self._sound:
                 shootsound.play()
+
 
     def shoot_bomb(self,input):
         """
@@ -604,22 +631,32 @@ class Wave(object):
             if self._sound:
                 ashootsound.play()
 
+
+
     def alien_to_shoot(self):
         """
         This method loops through the bottom remaining aliens and randomly assigns one.
         This is called by alien_shoot to determine which alien will fire a bolt.
         """
+        if self._endless:
+            list = []
+            for a in self._aliens:
+                for alien in a:
+                    if alien is not None and alien.y < GAME_HEIGHT:
+                        list.append(alien)
 
-        list = []
-        for c in range(len(self._aliens[0])):
-            alien_found = False
-            maxR = len(self._aliens)
-            for r in range(maxR):
-                alien = self._aliens[maxR-r-1][c] #starts at bottom and moves up
-                if alien is not None and alien_found == False:
-                    list.append(alien)
-                    alien_found = True
-            alien_found = False
+        else:
+            list = []
+            for c in range(len(self._aliens[0])):
+                min = GAME_HEIGHT
+                alien_found = False
+                maxR = len(self._aliens)
+                for r in range(maxR):
+                    alien = self._aliens[maxR-r-1][c] #starts at bottom and moves up
+                    if alien is not None and alien_found == False:
+                        list.append(alien)
+                        alien_found = True
+                alien_found = False
         return random.choice(list)
 
     def ship_collision(self):
@@ -659,16 +696,7 @@ class Wave(object):
                         if self._sound:
                             popsound.play()
 
-    # def aliens_down(self):
-    #     """
-    #     Brings all the aliens down at a constant rate. ONLY FOR ENDLESS MODE.
-    #     """
-    #     if self._endless:
-    #         for row in self._aliens:
-    #             for alien in row:
-    #                 oldy = alien.y
-    #                 newy = oldy-ALIEN_DOWN
-    #                 alien.setAlienYPosition(newy)
+
 
     def check_gameover(self):
         """
