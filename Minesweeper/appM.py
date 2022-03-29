@@ -37,7 +37,7 @@ class Main(GameApp):
             self.newwave_to_active()
         if self._state == STATE_ACTIVE:
             self._wave.update(self.input,dt)
-            self.active_to_paused()
+            #self.active_to_paused()
             self.isGameOver()
         if self._state == STATE_PAUSED:
             self.paused_to_active()
@@ -153,32 +153,6 @@ class Main(GameApp):
         self._wave = Game(self._row,self._column,self._numbomb)
         self._state = STATE_ACTIVE
 
-    def active_to_paused(self):
-        """
-        Changes the state from STATE_ACTIVE to STATE_PAUSED
-        when p is pressed.
-        """
-        self._text = None
-        current = self.input.is_key_down("p")
-        change = current > 0 and self._last == 0
-        if change == True:
-            self._state = STATE_PAUSED
-        self._last = current
-
-    def paused_to_active(self):
-        """
-        unpauses the game
-        """
-        self._text = GLabel(text="Game Paused. Press P to continue.",
-        font_size = 25, x = GAME_WIDTH/2, y = GAME_HEIGHT/2,
-        bold = True)
-
-        current = self.input.is_key_down("p")
-        change = current > 0 and self._last == 0
-        if change == True:
-            self._text = None
-            self._state = STATE_ACTIVE
-        self._last = current
 
 
     def isGameOver(self):

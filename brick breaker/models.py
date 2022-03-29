@@ -93,7 +93,7 @@ class Circle(GEllipse):
         r = CIRCLE_DIAMETER/2.0
         dx = (x-self.x)*(x-self.x)/(r*r)
         dy = (y-self.y)*(y-self.y)/(r*r)
-        return (dx+dy)<=1
+        return (dx*dy)<=1
 
     def circumference(self):
 
@@ -106,7 +106,7 @@ class Circle(GEllipse):
             for y in range (k-c, k+c):
                 if ((x-h)*(x-h)) + ((y-k)*(y-k)) == r*r:
                     list.append((x,y))
-        return list
+        return list        
 
         """
         for a in range(100):
