@@ -21,7 +21,9 @@ Author: Walker M. White (wmw2)
 Date:   November 1, 2017 (Python 3 Version)
 """
 from app import *
+import os
 
 # Application code
 if __name__ == '__main__':
+    #os.system('pip install introcs') #installs introcs to the terminal
     Mainclass(width=GAME_WIDTH,height=GAME_HEIGHT).run()

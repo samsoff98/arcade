@@ -1,2 +1,0 @@
-# arcade
-Sam's Games
