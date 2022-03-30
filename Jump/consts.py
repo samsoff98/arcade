@@ -15,31 +15,50 @@ import sys
 ### WINDOW CONSTANTS (all coordinates are in pixels) ###
 
 #: the width of the game display
-GAME_WIDTH  = 800
+GAME_WIDTH  = 700
 #: the height of the game display
-GAME_HEIGHT = 700
-
-
-### SHIP CONSTANTS ###
-
-# the width of the ship
-BALL_WIDTH    = 44
-# the height of the ship
-BALL_HEIGHT   = 44
-# the distance of the (bottom of the) ship from the bottom of the screen
-BALL_BOTTOM   = 32
-# The number of pixels to move the ship per update
-BALL_MOVEMENT = 5
-
-
+GAME_HEIGHT = 750
 
 
 ### ALIEN CONSTANTS ###
 
 # the width of an alien
-RECTANGLE_WIDTH   = 33
+RECTANGLE_WIDTH   = 100
 # the height of an alien
-RECTANGLE_HEIGHT  = 33
+RECTANGLE_HEIGHT  = 15
+
+RECTANGLE_START_Y = 100
+
+RECTANGLE_DISTANCE  = 80
+
+MAX_DISTANCE = 165
+
+RECTANGLE_DOWN = 1
+
+RECTANGLE_X_MOVEMENT = 5
+
+
+
+
+### SHIP CONSTANTS ###
+
+# the width of the JUMPER
+JUMPER_WIDTH    = 44
+# the height of the JUMPER
+JUMPER_HEIGHT   = 44
+# the distance of the (bottom of the) JUMPER from the bottom of the screen
+JUMPER_START_Y   = 150
+# The number of pixels to move the JUMPER in the x direction per update
+JUMPER_X_MOVEMENT = 10
+# The number of pixels to move the JUMPER in the y direction per update
+JUMP_VELOCITY = 12
+
+# The decrease in velocity per update
+GRAVITY = -.4
+
+
+
+
 
 RECTANGLE_COLOR = introcs.RGB(0,255,0)
 

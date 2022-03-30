@@ -1,14 +1,4 @@
-"""
-Primary module for Alien Invaders
 
-This module contains the main controller class for the Alien Invaders application. There
-is no need for any additional classes in this module.  If you need more classes, 99% of
-the time they belong in either the wave module or the models module. If you are unsure
-about where a new class should go, post a question on Piazza.
-
-# YOUR NAME(S) AND NETID(S) HERE: Sam Soff sps239
-# DATE COMPLETED HERE: 5/6/19
-"""
 from consts import *
 from game2d import *
 from wave import *
@@ -34,11 +24,11 @@ class Jumper(GameApp):
         self._file = None
         self._highscore = self.highscore()
         self._last = 0
-        self._text = GLabel(text="Use the arrow keys to move around eating food."
-        "\n You lose when you run into yourself, or run off the screen (if wraparound is on)"
-        "\n As you eat food you grow longer, and gain points",font_size = 20,
+        self._text = GLabel(text="Use the arrow keys to move back and forth."
+        "\n You lose when you fall off the screen."
+        "\n Land on the platforms to jump.",font_size = 20,
         x = GAME_WIDTH/2,y = 200, bold = True)
-        self._text1 = GLabel(text="Welcome to Screen Snake!!",font_size = 60,
+        self._text1 = GLabel(text="Welcome to Jumper!!",font_size = 40,
         x = GAME_WIDTH/2,y = 500, bold = True)
         self._text2 = GLabel (text = "Press s to start, and p to pause.",
         font_size = 35, x = GAME_WIDTH/2, y = 300, bold = True )
@@ -184,9 +174,9 @@ class Jumper(GameApp):
         unpauses the game
         """
         self._text = GLabel(text="Game Paused. Press P to continue."
-        " \n Press space to change color. \n Press w to change wrap-around setting."
-        "\n Press g for gridlines",
-        font_size = 25, left = GAME_WIDTH/4, bottom = GAME_HEIGHT/3,
+        " \n Press left and right to move the jumper."
+        "\n If you fall off the screen you lose",
+        font_size = 25, x = GAME_WIDTH/2, y = GAME_HEIGHT/2,
         bold = True)
 
         current = self.input.is_key_down("p")
@@ -209,35 +199,30 @@ class Jumper(GameApp):
 
         """
         score = self._wave.getScore()
-        if score <= 10:
-            string = ". That's pathetic."
-        elif score <= 50:
-            string = ". You can do better."
-        elif score <= 100:
-            string = ". I guess you're not terrible."
-        elif score <= 150:
-            string = ". That's pretty good."
-        elif score <= 200:
-            string = ". That's impressive."
-        else:
-            string = ". \n You clearly spend too much time playing this game."
 
         if self._highscore == '':
             self._highscore = 0
         if score > int(self._highscore):
-            file = open("highscore.txt", "w")
+            file = open("Jhighscore.txt", "w")
             self._highscore = score
             file.write(str(self._highscore) + "\n")
             file.close()
 
 
 
-        if self._wave.getGameOver() == True:
-            self._text = GLabel(text = "You Lose! Press s to play again"
-            "\n Your Score was " + str(score) + string,
-            font_size = 40, x = GAME_WIDTH/2, y = GAME_HEIGHT/2)
+        if self._wave.getGameOver() == 'lose':
+            self._text = GLabel(text = "You Lose! Press s to play again."
+            "\n Your Score was " + str(score) + ".",
+            font_size = 25, x = GAME_WIDTH/2, y = GAME_HEIGHT/2)
             self._text1 = GLabel(text = "High Score: " + str(self._highscore),
-            font_size = 40, x = GAME_WIDTH/2, y = GAME_HEIGHT/2-100)
+            font_size = 25, x = GAME_WIDTH/2, y = GAME_HEIGHT/2-100)
+            self.restart()
+        elif self._wave.getGameOver() == 'win':
+            self._text = GLabel(text = "YOU WIN! Press s to play again"
+            "\n Your Score was " + str(score) + ".",
+            font_size = 25, x = GAME_WIDTH/2, y = GAME_HEIGHT/2)
+            self._text1 = GLabel(text = "High Score: " + str(self._highscore),
+            font_size = 25, x = GAME_WIDTH/2, y = GAME_HEIGHT/2-100)
             self.restart()
 
 

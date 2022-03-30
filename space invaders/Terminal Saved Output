@@ -1,0 +1,24 @@
+Last login: Mon Nov 23 16:57:30 on ttys000
+
+The default interactive shell is now zsh.
+To update your account to use zsh, please run `chsh -s /bin/zsh`.
+For more details, please visit https://support.apple.com/kb/HT208050.
+(base) Sams-MacBook-Pro-3:~ samsoff$ cd Desktop/arcade/
+(base) Sams-MacBook-Pro-3:arcade samsoff$ python space\ invaders/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

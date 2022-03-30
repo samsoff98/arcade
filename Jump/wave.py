@@ -1,25 +1,16 @@
 """
-Subcontroller module for Alien Invaders
+Subcontroller module for Jumper
 
-This module contains the subcontroller to manage a single level or wave in the Alien
-Invaders game.  Instances of Wave represent a single wave.  Whenever you move to a
-new level, you are expected to make a new instance of the class.
+This module contains the subcontroller to manage a single level or wave in the
+Jumper game.  Instances of Wave represent a single wave.
 
-The subcontroller Wave manages the ship, the aliens and any laser bolts on screen.
-These are model objects.  Their classes are defined in models.py.
-
-Most of your work on this assignment will be in either this module or models.py.
-Whether a helper method belongs in this module or models.py is often a complicated
-issue.  If you do not know, ask on Piazza and we will answer.
-
-# YOUR NAME(S) AND NETID(S) HERE: Sam Soff sps239
-# DATE COMPLETED HERE: 5/6/19
 """
 from game2d import *
 from consts import *
 from models import *
 import random
 import math
+import collections
 
 # PRIMARY RULE: Wave can only access attributes in models.py via getters/setters
 # Wave is NOT allowed to access anything in app.py (Subcontrollers are not permitted
@@ -40,31 +31,26 @@ class JumpGame(object):
     # INITIALIZER (standard form) TO CREATE SHIP AND ALIENS
     def __init__(self, highscore):
         """
-        Initializes a single wave of Alien Invaders.
-
-        This function creates the ship and aliens during active game play of Alien Invaders.
-        This function also initializes all of the other attributes of the Wave class,
-        like the defense line, time, direction of alien marching, bolts, number of alien steps,
-        speed for the alien bolt shots, whether or not a ship collision has occurred,
-        number of lives, whether or not the game is over, draws the pause line,
-        whether or not the sound is muted or not, and draws the lives and sound animation.
+        Initializes the jumper gameplay.
         """
-        self._hscore = highscore
-
-        self._ship = Ship()
-        self._platforms = self.set_platforms()
-        self._time = 0
-
-        self._gameover = 'no'
-        self._pauseline = GLabel(text = "press p to pause",font_size= 20,
-        font_name= 'Arcade.ttf', x= GAME_WIDTH/2, y= GAME_HEIGHT-10)
-        self._press = 0
-
-
-    def set_platforms(self):
-        list = []
-        p1 = Rectangle(x = GAME_WIDTH/2, y = 40)
-        list.append(p1)
+        self._hscore = highscore #the highscore
+        self._jumper = Jumper() #creates the jumper
+        self._platforms = collections.deque() #makes a queue of platforms
+        self._time = 0 #the time of the game
+        self._score = 1 #the score of the game
+        self._gameover = 'no' #whether or not the game is over
+        self._pauseline = GLabel(text = "press p to pause and for instructions",font_size= 20, x= GAME_WIDTH/2, y= GAME_HEIGHT-10) #draws the pause line
+        self._scoreline = None #draws the score
+        self._press = 0 #checks if a button has been pressed in this update
+        self._timeline = None #draws the time
+        self._velocity = 0 #the velocity of the jumper
+        # self._topline = GPath(points=[0,GAME_HEIGHT-100,GAME_WIDTH,GAME_HEIGHT-100],
+        #               linewidth=2, linecolor=introcs.RGB(0,0,0)) #draws a black line at the top of the screen
+        self._level = 1 #the game level
+        self._active = False #the game is active once the player has started the game
+        self.set_platforms() #sets the platforms of the game
+        self._hscoreline = GLabel(text = "High Score: " + str(self._hscore), font_size = 15,
+        left = 0, y = GAME_HEIGHT-30) #draws the high score
 
 
 
@@ -74,10 +60,9 @@ class JumpGame(object):
         """
         Animates a single frame in the game.
 
-        This method updates the position of the ship. It keeps track of the time
-        passing. It moves the aliens, shoots and moves ship bolts and alien bolts.
-        It checks for collisions and the condition of the game. It changes the sound
-        setting of the game. It also shoots and moves a bomb.
+        This method updates the position of the jumper. It keeps track of the time
+        passing. It moves and creates the platforms.
+        It checks for collisions and the condition of the game.
 
         Parameter input: This parameter passes from class Invaders; it is the user
                          input, used to control the ship and change state
@@ -87,363 +72,284 @@ class JumpGame(object):
                       since the last call to update
         Precondition: dt is an int or float
         """
-        self.update_ball(input)
-        self._time += dt
+        self.start(input)
+
+        self.update_platforms()
+
+        if self._active == False:
+            self.startline()
+        if self._active == True:
+            self.update_jumper_x(input)
+            self.update_jumper_y()
+            self._time += dt
+            self.jumper_collision()
+            #self.score()
+            self.timeline()
+            self.gravity()
+            self.platforms_down(RECTANGLE_DOWN)
+            self.top_check()
+            self.scoreline()
+            self.move_platforms()
+            self.check_gameover()
+            self.cheat(input)
+            self.levelline()
 
 
-        self.check_gameover()
 
 
-    def update_ball(self,input):
+
+    def set_platforms(self):
         """
-        Updates the ship position based on user input.
+        Sets the initial platforms of the game.
+        """
+        num_platforms = GAME_HEIGHT // RECTANGLE_DISTANCE
+        for r in range(num_platforms):
+            leftMax = RECTANGLE_WIDTH/2
+            rightMax = GAME_WIDTH - RECTANGLE_WIDTH/2
+            if r == 0:
+                a = GAME_WIDTH/2
+            else:
+                a = random.randint(leftMax,rightMax)
+            p = Rectangle(x = a, y = RECTANGLE_START_Y + (r)*RECTANGLE_DISTANCE)
+            self._platforms.append(p)
 
-        This method is called by the update function. It moves the ship left or
-        right based on which arrow key is pressed.
 
-        Parameter input: This parameter passes from class Invaders. It is the
-        user input, used to control the ship and change state.
 
-        Precondition: instance of GInput inherited from GameApp
+
+
+    def start (self,input):
+        """
+        Starts the game when the up arrow is pressed, and sets the game to _active.
+        """
+        if input.is_key_down('up') and self._active == False:
+            self._velocity = JUMP_VELOCITY
+            self._active = True
+
+    def cheat(self,input):
+        """
+        Is a cheat code. When up and shift are pressed at the same time, the jumper
+        will shoot up into the air with a velocity of 10*JUMP_VELOCITY.
+        """
+        if input.is_key_down('up') and input.is_key_down('shift'):
+            self._velocity = JUMP_VELOCITY*10
+
+
+    def update_jumper_x(self,input):
+        """
+        Moves the jumper left or right based on user input.
         """
         da = 0
         if input.is_key_down('left'):
-            da -= BALL_MOVEMENT
+            da -= JUMPER_X_MOVEMENT
         if input.is_key_down('right'):
-            da += BALL_MOVEMENT
-        self._ship.move_ship(da)
+            da += JUMPER_X_MOVEMENT
+        self._jumper.move_jumper_x(da)
 
-    def update_aliens(self):
+    def update_jumper_y(self):
         """
-        Marches the aliens right, left and down.
+        moves the jumper in the y direction based on it's velocity
+        """
+        self._jumper.move_jumper_y(self._velocity)
 
-        This method moves the aliens every _speed seconds. Starting from the
-        left it moves the aliens right, then down then left, then down and right again.
-        This calls on helper functions to move right, left and down, as well as
-        functions to find the leftmost alien and rightmost alien.
+
+    def gravity(self):
         """
-        leftmost = self.leftmost_alien()
-        rightmost = self.rightmost_alien()
-        if self._time > self._speed:
-            if self._direction == 'right':
-                if rightmost.right > GAME_WIDTH - ALIEN_H_SEP:
-                    self.aliens_down()
-                    self._direction = 'left'
+        decreases the velocity by a GRAVITY amount per update. This is what causes the
+        jumper to fall down. (Gravity is a negative value)
+        """
+        self._velocity += GRAVITY
+
+
+    def platforms_down(self, y):
+        """
+        This moves all of the platforms down by y amount. This is what causes the
+        platforms to move down and off the screen. This also increases the game
+        score, when a platform has a y value less than the jumper. Once a platform
+        is under the jumper its "_passed" variable is set to true so the score is
+        only increased once per platform. This method also increases the game level,
+        when the score hits another hundred points the level is increased by 1.
+        """
+        for p in self._platforms:
+            oldy = p.getPaddleY()
+            newy = oldy - y
+            if not p._passed and newy < self._jumper.y:
+                self._score += 1
+                p._passed = True
+                if self._score % 100 == 0:
+                    self._level += 1
+            p.setPaddleY(newy)
+
+
+    def top_check(self):
+        """
+        This method makes sure that the jumper doesn't go off the screen, so when
+        jumper gets too high, this method brings the platforms down.
+        """
+        if self._jumper.y > GAME_HEIGHT-200 and self._velocity>0:
+            self.platforms_down(self._velocity)
+            self._jumper.y -= self._velocity
+
+
+
+    def jumper_collision(self):
+        """
+        checks if the jumper had collided with any platforms by calling on collide,
+        a helper function. If the function returns true (meaning the jumper has collided
+        with a platform) the jumper's velocity is set to JUMP_VELOCITY
+        """
+        if self.collide() == "jump":
+            self._velocity = JUMP_VELOCITY
+        elif self.collide() == "sjump":
+            self._velocity = 4*JUMP_VELOCITY
+
+    def collide(self):
+        """
+        Checks if the jumper has made contact with any platforms.
+        It checks if the bottom left or bottom right corners of the jumper are contained
+        in any of the platforms.
+        """
+        jumper = self._jumper
+        l = jumper.left
+        r = jumper.right
+        t = jumper.top
+        b = jumper.bottom
+        for x in self._platforms:
+            if (x.contains((l,b)) or x.contains((r,b))) and self._velocity<GRAVITY and jumper.y < GAME_HEIGHT:
+                if x._superjump:
+                    return "sjump"
                 else:
-                    self.aliens_right()
-            elif self._direction == 'left':
-                if leftmost is not None and leftmost.left <= ALIEN_H_SEP:
-                    self.aliens_down()
-                    self._direction = 'right'
-                else:
-                    self.aliens_left()
-            self._time = 0
-            self._steps += 1
-
-    def leftmost_alien(self):
-        """
-        Loops through the 2d list of aliens to find the leftmost one.
-        This is used by the update_aliens, as when the leftmost alien gets to
-        the left side of the screen the aliens move down and start going to the right.
-        """
-        for col in range(len(self._aliens[0])):
-            for row in range(len(self._aliens)-1,-1,-1):
-                if self._aliens[row][col] is not None:
-                    return self._aliens[row][col]
-
-    def rightmost_alien(self):
-        """
-        Loops through the 2d list of aliens to find the rightmost one.
-        This is used by the update_aliens, as when the rightmost alien gets to
-        the right side of the screen the aliens move down and start going to the left.
-        """
-        for c in range(len(self._aliens[0])-1, -1, -1):
-            for r in range(len(self._aliens)-1,-1,-1):
-                if self._aliens[r][c] is not None:
-                    return self._aliens[r][c]
-
-    def aliens_right(self):
-        """
-        Moves all of the aliens one ALIEN_H_WALK unit to the right.
-        """
-        for r in self._aliens:
-            for alien in r:
-                if alien is not None:
-                    x = alien.getAlienXPosition()
-                    x += ALIEN_H_WALK
-                    alien.setAlienXPosition(x)
-
-
-    def aliens_left(self):
-        """
-        Moves all of the aliens one ALIEN_H_WALK unit to the left.
-        """
-        for r in self._aliens:
-            for alien in r:
-                if alien is not None:
-                    x = alien.getAlienXPosition()
-                    x -= ALIEN_H_WALK
-                    alien.setAlienXPosition(x)
-
-    def aliens_down(self):
-        """
-        Moves all of the aliens one ALIEN_V_WALK unit to the left.
-        """
-        for r in self._aliens:
-            for alien in r:
-                if alien is not None:
-                    y = alien.getAlienYPosition()
-                    y -= ALIEN_V_WALK
-                    alien.setAlienYPosition(y)
-
-    def player_shoot(self,input):
-        """
-        Creates a player bolt when the input key is pressed ('up').
-        It only shoots a bolt when there are no other player bolts on the screen.
-        If also plays the 'pew1' sound when the bolt is shot.
-
-        Parameter input: This parameter passes from class Invaders; it is the user
-                         input, used to control the ship and change state
-        Precondition: instance of GInput; it is inherited from GameApp
-        """
-        shootsound = Sound('pew1.wav')
-        for bolt in self._bolts:
-            if bolt.isPlayerBolt():
-                return
-        x = self._ship.getShipPosition()
-        y = SHIP_BOTTOM+SHIP_HEIGHT
-        if input.is_key_down('up') or input.is_key_down('spacebar'):
-            self._bolts.append(Bolt(x,y,BOLT_SPEED))
-            if self._sound:
-                shootsound.play()
-
-    def shoot_bomb(self,input):
-        """
-        Creates a player bomb when the input key is pressed ('b').
-        It only shoots a bomb when the player has a bomb to shoot in _bomblist.
-        If also plays the 'blast2' sound when the bomb is shot.
-
-        Parameter input: This parameter passes from class Invaders; it is the user
-                         input, used to control the ship and change state
-        Precondition: instance of GInput; it is inherited from GameApp
-        """
-        bombsound = Sound('blast2.wav')
-        if input.is_key_down('b') and self._bomb != 0:
-            x = self._ship.getShipPosition()
-            y = SHIP_BOTTOM+SHIP_HEIGHT
-            bombX = bomb(x=x,y=y,source = BOMB_IMAGE)
-            self._bomblist.append(bombX)
-            self._draw_bomb = []
-            self._bomb -=1
-            if self._sound:
-                bombsound.play()
-
-    def move_bomb(self):
-        """
-        This method moves a bomb BOMB_SPEED units every animation frame and deletes
-        the bomb from the list of bomb whenever it hits the top or bottom of the
-        game window.
-        """
-        for bomb in self._bomblist:
-            pos = bomb.getBombY()
-            pos += bomb.getBombVelocity()
-            bomb.setBombY(pos)
-            if pos > GAME_HEIGHT or pos < 0:
-                self._bomblist.remove(bomb)
-
-    def bomb_collision(self):
-        """
-        Detects whether a ship bomb has collided with an alien.
-        If there is a collision the alien is removed as well as all aliens within
-        one space of the hit alien. This calls on the helper method explosion.
-        """
-        for bomb in self._bomblist:
-            for r in range(len(self._aliens)):
-                for c in range(len(self._aliens[r])):
-                    alien = self._aliens[r][c]
-                    if alien is not None and alien.bombCollide(bomb):
-                        self.explosion(r,c)
-
-
-
-    def explosion(self,r,c):
-        """
-        A helper method that removes all aliens within one space (2 dimensionally)
-        of an alien hit with a bomb.
-        """
-        startR = r-1
-        endR = r+1
-        startC = c-1
-        endC = c+1
-
-        if r == 0:
-            startR = 0
-        elif r == len(self._aliens)-1:
-            endR = len(self._aliens)-1
-
-        if c == 0:
-            startC = 0
-        elif c == len(self._aliens[0])-1:
-            endC = len(self._aliens[0])-1
-
-        i = startR
-        x = startC
-        while i <= endR:
-            while x <= endC:
-                self._aliens[i][x] = None
-                x+=1
-            i+=1
-            x = startC
-        self._bomblist = []
+                    return "jump"
+        return None
 
 
 
 
-    def move_bolt(self):
+    def update_platforms(self):
         """
-        This method moves a bolt BOLT_SPEED units every animation frame and deletes
-        the bolt from the list of bolts whenever it hits the top or bottom of the
-        game window.
+        This method is responsible for creating new platforms. It removes platforms
+        that have gone off the screen. It sets the distance between platforms, the
+        percent chance that a given platform will move, and the color of the platforms
+        based on the current level.
         """
-        for bolt in self._bolts:
-            pos = bolt.getBoltPosition()
-            pos += bolt.getVelocity()
-            bolt.setBoltPosition(pos)
-            if pos > GAME_HEIGHT or pos < 0:
-                self._bolts.remove(bolt)
+        #remove platform(s) at bottom when their y value is less than 0 (off the screen)
+        while self._platforms[0].y < 0:
+            self._platforms.popleft()
 
-    def alien_shoot(self):
-        """
-        This method shoots a bolt from a random alien, assigned by the helper function
-        alien_to_shoot. It also playes sound 'pew2' when the aliens shoot.
-        The speed that the aliens shoot is determined by the attribute _shotrate.
-        """
-        ashootsound = Sound('pew2.wav')
-        alien = self.alien_to_shoot()
-        if self._steps == self._shotrate:
-            self._bolts.append(Bolt(x=alien.x, y = alien.bottom,
-            v = -BOLT_SPEED))
-            self._steps = 0
-            if self._sound:
-                ashootsound.play()
+        # determines the distance between platforms, the likelihood that a platform
+        #  will move, and the color of the platform based on the current level.
+        dist = RECTANGLE_DISTANCE + (self._level-1)*15
+        if dist > MAX_DISTANCE:
+            dist = MAX_DISTANCE
+        moveChance = (self._level-1)*20
+        color = RECTANGLE_COLOR
 
-    def alien_to_shoot(self):
-        """
-        This method loops through the bottom remaining aliens and randomly assigns one.
-        This is called by alien_shoot to determine which alien will fire a bolt.
-        """
-        list = []
-        for c in range(len(self._aliens[0])):
-            alien_found = False
-            maxR = len(self._aliens)
-            for r in range(maxR):
-                alien = self._aliens[maxR-r-1][c] #starts at bottom and moves up
-                if alien is not None and alien_found == False:
-                    list.append(alien)
-                    alien_found = True
-            alien_found = False
-        return random.choice(list)
+        if self._level ==2:
 
-    def ship_collision(self):
-        """
-        Detects whether an alien bolt has collided with the ship.
-        If there is a collision the ship is removed, the game is paused
-        and a life is lost. It also plays the 'blast1' sound when the collision
-        occurs.
-        """
-        hitsound = Sound('blast1.wav')
-        for bolt in self._bolts:
-            if self._ship is not None and self._ship.collide(bolt) == True:
-                self._ship = None
-                self._bolts.remove(bolt)
-                self._lives -=1
-                self._collided = True
-                del self._draw_lives[self._lives]
-                if self._sound:
-                    hitsound.play()
+            color = introcs.RGB(255,165,0)
+        elif self._level ==3:
 
-    def alien_collision(self):
+            color = introcs.RGB(0,0,255)
+        elif self._level == 4:
+
+            color = introcs.RGB(128,0,128)
+        elif self._level >= 5:
+
+            color = introcs.RGB(255,0,0)
+
+        #adds a new platform at the top when the last platform in the queue is
+        # dist below the top of the screen.
+        if self._platforms[-1].y < GAME_HEIGHT - dist:
+            leftMax = RECTANGLE_WIDTH/2
+            rightMax = GAME_WIDTH - RECTANGLE_WIDTH/2
+            x_val = random.randint(leftMax,rightMax) #randomly determines the x value of the platform
+            b = random.randint(0,100) #randomly determines whether the platform will move (if b < moveChance)
+
+            m = False
+            if b < moveChance:
+                m = True #if b<moveChance then m is true, which means the platform will move
+            superjump = random.randint(0,30) #randomly determines whether the platform is a superjump
+            j = False
+            if superjump == 1:
+                j = True
+                color = introcs.RGB(0,0,0)
+            p = Rectangle(x = x_val, y = GAME_HEIGHT, move = m, sjump = j)
+            p.fillcolor = color
+            self._platforms.append(p)
+
+
+
+    def move_platforms(self):
         """
-        Detects whether a ship bolt has collided with an alien.
-        If there is a collision the alien is removed and the sound 'pop2' is
-        played.
+        for any platform that moves left and right, this method moves the platforms.
         """
-        popsound = Sound('pop2.wav')
-        for bolt in self._bolts:
-            for r in range(len(self._aliens)):
-                for c in range(len(self._aliens[r])):
-                    alien = self._aliens[r][c]
-                    if alien is not None and alien.collide(bolt):
-                        self._aliens[r][c] = None
-                        self._bolts.remove(bolt)
-                        if self._sound:
-                            popsound.play()
+        for r in self._platforms:
+            if r._move == True:
+                r.moving()
+
+
 
     def check_gameover(self):
         """
-        Checks if the game is over either from the player winning or losing.
-        If there are no more aliens, the player won and the attribute _gameover
-        is set to "win". If the aliens reach the defence line the player lost and
-        the attribute _gameover is set to "lose".
+        Checks if the game is over, if the jumper falls off the screen
         """
-        count = 0
-        for row in self._aliens:
-            for alien in row:
-                if alien is not None:
-                    count +=1
-        if count == 0:
-            self._gameover = "win"
-        for row in self._aliens:
-            for alien in row:
-                if alien is not None and alien.bottom<DEFENSE_LINE:
-                    self._gameover = 'lose'
+        if self._jumper.y< 0:
+            self._gameover = "lose"
+            return True
+        # elif self._score == 500:
+        #     self._gameover = "win"
+        #     return True
 
-    def change_sound(self,input):
-        """
-        This method allows the player to mute and unmute the game sounds with
-        the m key. It does this by changing the attribute _sound to True (if sound)
-        or False (if muted).
-        """
-        if input.is_key_down('m'):
-            current = True
-        else:
-            current = False
-        change = current>0 and self._press == 0
-        if self._sound == True and change:
-            self._sound = False
-            self._draw_sound = None
-        elif self._sound == False and change:
-            self._sound = True
-            self._draw_sound = self.draw_sound()
 
-        self._press = current
+    def getScore(self):
+        """
+        Returns the score
+        """
+        return self._score
+
+    def timeline(self):
+        """
+        Draws the line that gives the amount of time that the game has been going on for
+        """
+        time = round(self._time, 1)
+        self._timeline = GLabel(text = ("Time: " + str(time)),
+        font_size= 10, x= GAME_WIDTH-30, y= GAME_HEIGHT-30)
+
+    def scoreline(self):
+        """
+        Draws and updates the scoreline based on the score of the game
+        """
+        self._scoreline = GLabel(text = ("Score: " + str(self._score)),
+        font_size= 20, x= GAME_WIDTH/2, y= GAME_HEIGHT-40)
+
+    def levelline(self):
+        """
+        Draws the line that tells what level the player is on
+        """
+        self._levelline = GLabel(text = ("Level: " + str(self._level)),
+        font_size= 15, left= 0, y= GAME_HEIGHT-40)
+
+    def startline(self):
+        """
+        Creates the line that says "press up to start" at the beginning of the game.
+        """
+        if self._active == False:
+            self._text = GLabel(text = "press up to start",font_size= 30,
+            x= GAME_WIDTH/2, y= GAME_HEIGHT/2)
 
     # DRAW METHOD TO DRAW THE SHIP, ALIENS, DEFENSIVE LINE AND BOLTS
     def draw(self,view):
         """
-        This method draws the various objects in the game. This includes the
-        aliens, the ship, the defensive line, the bolts, the player's lives,
-        the manual to pause, and the sound icon.
-
-        Parameter view: This parameter gets passed from class Invaders; it is the
-                        game view, used in drawing
-        Precondition: instance of GView; it is inherited from GameApp
+        This method draws the various objects in the game. This includes the platforms,
+        the jumper, etc.
         """
-        for r in self._aliens:
-            for alien in r:
-                if alien is not None:
-                    alien.draw(view)
-        if self._ship is not None:
-            self._ship.draw(view)
-        self._dline.draw(view)
-        for b in self._bolts:
-            b.draw(view)
-        for h in self._draw_lives:
-            h.draw(view)
-        self._pauseline.draw(view)
-        if self._draw_sound is not None:
-            self._draw_sound.draw(view)
-        for bomb in self._bomblist:
-            bomb.draw(view)
-        for x in self._draw_bomb:
-            x.draw(view)
+        for r in self._platforms:
+            r.draw(view)
+        self._jumper.draw(view)
+        if self._active == False:
+            self._text.draw(view)
+        if self._active == True:
+            self._timeline.draw(view)
+            self._scoreline.draw(view)
+            self._levelline.draw(view)
+            self._hscoreline.draw(view)
+            self._pauseline.draw(view)

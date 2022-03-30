@@ -121,8 +121,20 @@ class Wave(object):
         """
         return self._gameover
 
+    def getScore(self):
+        """
+        Returns the score of the game (for endless mode)
+        """
+        return self._score
+
+    def getTime(self):
+        """
+        Returns the time of the game
+        """
+        return self._timer
+
     # INITIALIZER (standard form) TO CREATE SHIP AND ALIENS
-    def __init__(self, rows, columns, speed):
+    def __init__(self, rows, columns, speed, e, highscore):
         """
         Initializes a single wave of Alien Invaders.
 
@@ -133,6 +145,11 @@ class Wave(object):
         number of lives, whether or not the game is over, draws the pause line,
         whether or not the sound is muted or not, and draws the lives and sound animation.
         """
+
+        self._endless = e
+        self._score = 0
+        self._etime = 0
+        self._timer = 0
         self._rows = rows
         self._columns = columns
         self._speed = speed
@@ -148,7 +165,7 @@ class Wave(object):
         self._shotrate = random.randint(1,BOLT_RATE)
         self._collided = False
         self._gameover = 'no'
-        self._pauseline = GLabel(text = "press p to pause",font_size= 20,
+        self._pauseline = GLabel(text = "press p to pause and for instructions",font_size= 20,
         font_name= 'Arcade.ttf', x= GAME_WIDTH/2, y= GAME_HEIGHT-10)
         self._sound = 0
         self._press = 0
@@ -157,8 +174,18 @@ class Wave(object):
         self._bomb = 1
         self._bomblist = []
         self._draw_bomb = self.draw_bomb()
+        self._timeline = None
+        self._scoreline = None
+        self._hscore = highscore
 
-    def alien_wave(self):
+        if self._endless:
+            phrase = "High Score: "
+        else:
+            phrase = "Best Time: "
+        self._hscoreline = GLabel(text = phrase + str(self._hscore), font_size = 15,
+        right = GAME_WIDTH-10, y = GAME_HEIGHT-40)
+
+    def alien_wave(self, u = 0):
         """
         Initializes the 2d list of aliens in the wave.
 
@@ -167,17 +194,46 @@ class Wave(object):
         accounts for the different alien images based on the row.
         Finally, it places the aliens in the proper positions away from each
         other and from the edges of the window.
+
+        The parameter x allows the alien wave to be placed at any x value on the
+        screen, so the wave can align with the existing aliens in endless mode.
         """
+        if self._endless:
+            if self._score == 0:
+                ceiling =  GAME_HEIGHT - 50
+            else:
+                top = self.topmost_alien()
+                max = top.y
+                distance = self._rows * (ALIEN_HEIGHT+ALIEN_V_SEP) + ALIEN_V_SEP
+                ceiling = max + distance
+                if ceiling > GAME_HEIGHT:
+                    ceiling == GAME_HEIGHT
+        else:
+            ceiling = GAME_HEIGHT-ALIEN_CEILING
         alist = []
         for r in range(self._rows):
             list = []
             for alien in range(self._columns):
                 x = (self._rows-r-1)//2
-                list.append(Alien(left=(ALIEN_H_SEP*(alien+1)+alien*ALIEN_WIDTH),
-                top=((GAME_HEIGHT-ALIEN_CEILING)-(r*(ALIEN_HEIGHT+ALIEN_V_SEP))),
+                list.append(Alien(left=(ALIEN_H_SEP*(alien+1)+alien*ALIEN_WIDTH+u),
+                top=((ceiling)-(r*(ALIEN_HEIGHT+ALIEN_V_SEP))),
                 source=ALIEN_IMAGES[x%4]))
             alist.append(list)
+        #alist[0][1].fillcolor = introcs.RGB(0,0,0)
         return alist
+
+
+    def endless_wave(self):
+        if self._endless == True:
+            a = self.leftmost_alien()
+            u = a.left-ALIEN_WIDTH//2-5
+            if a is not None:
+
+                if self._etime > ENDLESS_TIMER: #and a.x <= ALIEN_H_SEP+ALIEN_WIDTH/2:
+                    newWave = self.alien_wave(u)
+                    self._aliens += (newWave)
+
+                    self._etime = 0
 
     def draw_lives(self):
         """
@@ -214,6 +270,27 @@ class Wave(object):
             source = BOMB_IMAGE))
         return list
 
+    def timeline(self):
+        """
+        Draws the line that gives the amount of time that the game has been going on for
+        """
+        if self._endless:
+            timer = ENDLESS_TIMER-self._etime
+            t = round(timer, 1)
+            self._timeline = GLabel(text = ("Time until next wave: " + str(t)),
+            font_size= 10, right= GAME_WIDTH-10, y= GAME_HEIGHT-10)
+        else:
+            timer = self._timer
+            t = round(timer,1)
+            self._timeline = GLabel(text = ("Time: " + str(t)),
+            font_size= 10, right= GAME_WIDTH-10, y= GAME_HEIGHT-10)
+
+    def scoreline(self):
+        """
+        Draws and updates the scoreline based on the score of the game
+        """
+        self._scoreline = GLabel(text = ("Score: " + str(self._score)),
+        font_size= 20, x= GAME_WIDTH/2, y= GAME_HEIGHT-30)
 
     # UPDATE METHOD TO MOVE THE SHIP, ALIENS, AND LASER BOLTS
     def update(self,input,dt):
@@ -235,6 +312,9 @@ class Wave(object):
         """
         self.update_ship(input)
         self._time += dt
+        self._etime += dt
+        self._timer += dt
+        self.endless_wave()
         self.update_aliens()
         self.player_shoot(input)
         self.move_bolt()
@@ -246,6 +326,13 @@ class Wave(object):
         self.shoot_bomb(input)
         self.move_bomb()
         self.bomb_collision()
+
+
+        self.timeline()
+        self.scoreline()
+        if self._endless:
+            self.aliens_down(ALIEN_DOWN)
+
 
     def update_ship(self,input):
         """
@@ -280,18 +367,41 @@ class Wave(object):
         if self._time > self._speed:
             if self._direction == 'right':
                 if rightmost.right > GAME_WIDTH - ALIEN_H_SEP:
-                    self.aliens_down()
+                    self.aliens_down(ALIEN_V_WALK)
                     self._direction = 'left'
                 else:
                     self.aliens_right()
             elif self._direction == 'left':
                 if leftmost is not None and leftmost.left <= ALIEN_H_SEP:
-                    self.aliens_down()
+                    self.aliens_down(ALIEN_V_WALK)
                     self._direction = 'right'
                 else:
                     self.aliens_left()
             self._time = 0
             self._steps += 1
+
+    # def leftmost_alien(self):
+    #     """
+    #     Loops through the 2d list of aliens to find the leftmost one.
+    #     This is used by the update_aliens, as when the leftmost alien gets to
+    #     the left side of the screen the aliens move down and start going to the right.
+    #     """
+    #     for col in range(len(self._aliens[0])):
+    #         for row in range(len(self._aliens)-1,-1,-1):
+    #             if self._aliens[row][col] is not None:
+    #                 return self._aliens[row][col]
+    #
+    # def rightmost_alien(self):
+    #     """
+    #     Loops through the 2d list of aliens to find the rightmost one.
+    #     This is used by the update_aliens, as when the rightmost alien gets to
+    #     the right side of the screen the aliens move down and start going to the left.
+    #     """
+    #     for c in range(len(self._aliens[0])-1, -1, -1):
+    #         for r in range(len(self._aliens)-1,-1,-1):
+    #             if self._aliens[r][c] is not None:
+    #                 return self._aliens[r][c]
+
 
     def leftmost_alien(self):
         """
@@ -299,10 +409,14 @@ class Wave(object):
         This is used by the update_aliens, as when the leftmost alien gets to
         the left side of the screen the aliens move down and start going to the right.
         """
-        for col in range(len(self._aliens[0])):
-            for row in range(len(self._aliens)-1,-1,-1):
-                if self._aliens[row][col] is not None:
-                    return self._aliens[row][col]
+        min = GAME_WIDTH
+        left = None
+        for col in self._aliens:
+            for alien in col:
+                if alien is not None and alien.x< min:
+                    min = alien.x
+                    left = alien
+        return left
 
     def rightmost_alien(self):
         """
@@ -310,10 +424,45 @@ class Wave(object):
         This is used by the update_aliens, as when the rightmost alien gets to
         the right side of the screen the aliens move down and start going to the left.
         """
-        for c in range(len(self._aliens[0])-1, -1, -1):
-            for r in range(len(self._aliens)-1,-1,-1):
-                if self._aliens[r][c] is not None:
-                    return self._aliens[r][c]
+        max = 0
+        right = None
+        for col in self._aliens:
+            for alien in col:
+                if alien is not None and alien.x> max:
+                    max = alien.x
+                    right = alien
+        return right
+
+    def topmost_alien(self):
+        """
+        Loops through the 2d list of aliens to find the rightmost one.
+        This is used by the update_aliens, as when the rightmost alien gets to
+        the right side of the screen the aliens move down and start going to the left.
+        """
+        max = 0
+        top = None
+        for col in self._aliens:
+            for alien in col:
+                if alien is not None and alien.y> max:
+                    max = alien.y
+                    top = alien
+        return top
+
+
+    def bottommost_alien(self):
+        """
+        Loops through the 2d list of aliens to find the rightmost one.
+        This is used by the update_aliens, as when the rightmost alien gets to
+        the right side of the screen the aliens move down and start going to the left.
+        """
+        max = 0
+        top = None
+        for col in self._aliens:
+            for alien in col:
+                if alien is not None and alien.y< min:
+                    min = alien.y
+                    bottom = alien
+        return bottom
 
     def aliens_right(self):
         """
@@ -338,15 +487,15 @@ class Wave(object):
                     x -= ALIEN_H_WALK
                     alien.setAlienXPosition(x)
 
-    def aliens_down(self):
+    def aliens_down(self, d):
         """
-        Moves all of the aliens one ALIEN_V_WALK unit to the left.
+        Moves all of the aliens one ALIEN_V_WALK unit down.
         """
         for r in self._aliens:
             for alien in r:
                 if alien is not None:
                     y = alien.getAlienYPosition()
-                    y -= ALIEN_V_WALK
+                    y -= d
                     alien.setAlienYPosition(y)
 
     def player_shoot(self,input):
@@ -369,6 +518,7 @@ class Wave(object):
             self._bolts.append(Bolt(x,y,BOLT_SPEED))
             if self._sound:
                 shootsound.play()
+
 
     def shoot_bomb(self,input):
         """
@@ -474,27 +624,39 @@ class Wave(object):
         ashootsound = Sound('pew2.wav')
         alien = self.alien_to_shoot()
         if self._steps == self._shotrate:
+            self._shotrate = random.randint(1,BOLT_RATE)
             self._bolts.append(Bolt(x=alien.x, y = alien.bottom,
             v = -BOLT_SPEED))
             self._steps = 0
             if self._sound:
                 ashootsound.play()
 
+
+
     def alien_to_shoot(self):
         """
         This method loops through the bottom remaining aliens and randomly assigns one.
         This is called by alien_shoot to determine which alien will fire a bolt.
         """
-        list = []
-        for c in range(len(self._aliens[0])):
-            alien_found = False
-            maxR = len(self._aliens)
-            for r in range(maxR):
-                alien = self._aliens[maxR-r-1][c] #starts at bottom and moves up
-                if alien is not None and alien_found == False:
-                    list.append(alien)
-                    alien_found = True
-            alien_found = False
+        if self._endless:
+            list = []
+            for a in self._aliens:
+                for alien in a:
+                    if alien is not None and alien.y < GAME_HEIGHT:
+                        list.append(alien)
+
+        else:
+            list = []
+            for c in range(len(self._aliens[0])):
+                min = GAME_HEIGHT
+                alien_found = False
+                maxR = len(self._aliens)
+                for r in range(maxR):
+                    alien = self._aliens[maxR-r-1][c] #starts at bottom and moves up
+                    if alien is not None and alien_found == False:
+                        list.append(alien)
+                        alien_found = True
+                alien_found = False
         return random.choice(list)
 
     def ship_collision(self):
@@ -528,9 +690,13 @@ class Wave(object):
                     alien = self._aliens[r][c]
                     if alien is not None and alien.collide(bolt):
                         self._aliens[r][c] = None
-                        self._bolts.remove(bolt)
+                        self._score +=1
+                        if bolt in self._bolts:
+                            self._bolts.remove(bolt)
                         if self._sound:
                             popsound.play()
+
+
 
     def check_gameover(self):
         """
@@ -539,13 +705,14 @@ class Wave(object):
         is set to "win". If the aliens reach the defence line the player lost and
         the attribute _gameover is set to "lose".
         """
-        count = 0
-        for row in self._aliens:
-            for alien in row:
-                if alien is not None:
-                    count +=1
-        if count == 0:
-            self._gameover = "win"
+        if self._endless == False:
+            count = 0
+            for row in self._aliens:
+                for alien in row:
+                    if alien is not None:
+                        count +=1
+            if count == 0:
+                self._gameover = "win"
         for row in self._aliens:
             for alien in row:
                 if alien is not None and alien.bottom<DEFENSE_LINE:
@@ -589,6 +756,12 @@ class Wave(object):
         if self._ship is not None:
             self._ship.draw(view)
         self._dline.draw(view)
+
+        if self._endless:
+            self._scoreline.draw(view)
+        self._hscoreline.draw(view)
+        self._timeline.draw(view)
+
         for b in self._bolts:
             b.draw(view)
         for h in self._draw_lives:
